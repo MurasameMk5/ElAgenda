@@ -10,6 +10,7 @@ type props= {
   image?: string;
   color?: string;
   textColor?: string;
+  onEnCours?: (isEnCours: boolean) => void;
 }
 
 export default function TasksMiniature(props: props) {
@@ -19,6 +20,17 @@ export default function TasksMiniature(props: props) {
     setTime(new Date().toISOString());
     console.log("aujourd'hui: ", new Date().toLocaleTimeString(), 'start: ', props.start, 'end: ', props.end);
   }, [])
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      props.onEnCours && props.onEnCours(enCours());
+    }, 60000); // vérifie chaque minute
+
+    // Appel initial
+    props.onEnCours && props.onEnCours(enCours());
+
+    return () => clearInterval(interval);
+  }, [props.start, props.end]);
 
   const enCours = () =>{
     return props.start < new Date().toLocaleTimeString('fr-Fr').slice(0, 5) && new Date().toLocaleTimeString().slice(0, 5) < props.end;

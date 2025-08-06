@@ -1,14 +1,32 @@
-import React from 'react';
+import React, { use, useEffect, useState } from 'react';
 import { StyleSheet, ScrollView, Text, View } from 'react-native';
 import {Image} from 'expo-image';
 import TasksMiniature from './TasksMiniature';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useEvents } from '@/app/eventsContext';
 import { Ionicons } from '@expo/vector-icons';
+import Animated, {useSharedValue, useAnimatedStyle, withTiming, withRepeat, Easing, ReduceMotion} from 'react-native-reanimated';
 
 
 export default function HomeTasks() {
   const {events} = useEvents();
+  const [enCours, setEnCours] = useState(false)
+  const translateX = useSharedValue(0);
+  
+  const handleEnCours = (isEnCours: boolean) => {
+    setEnCours(isEnCours);
+  };
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: translateX.value }],
+  }));
+
+  useEffect(() => {
+    if(enCours) 
+      translateX.value = withRepeat(withTiming(200, { duration: 1500, easing: Easing.inOut(Easing.poly(6)), reduceMotion: ReduceMotion.Never }), -1, true);
+    else
+      translateX.value = 0;
+  }, [enCours]);
   return (
     <View style={styles.container}>
       <View style={{flex: 1, borderWidth: 1, borderColor: 'orange', margin: 5, borderRadius: 20}} >
@@ -26,10 +44,23 @@ export default function HomeTasks() {
             })}
           </Text>
         </View>
-        <Image
-          source={require('@/assets/images/cat-anim.gif')}
-          style={{ width: '90%', height: 100, alignSelf: 'center', marginBottom: 0 }}
-        />
+        {
+          enCours ? (
+          <View style={{marginLeft: '5%', alignItems: 'flex-start', justifyContent: 'flex-start'}}>
+            <Animated.View style={[{width:134, height: 98, borderStyle: 'dotted', borderBottomColor: 'orange', borderBottomWidth: 2}, animatedStyle]}>
+              <Image
+                source={require('@/assets/images/Varuo-running.gif')}
+                style={{ width: 134, height: 98, marginBottom: 0, transform: [{ scaleX: -1 }]}}
+            />
+          </Animated.View>
+          </View>
+          ) : (
+            <Image
+              source={require('@/assets/images/Varuo-happy.gif')}
+              style={{ width: 132, height: 98, alignSelf: 'center', marginBottom: 0, transform: [{ scaleX: -1 }]}}
+            />
+          )
+        }
       </View>
       <ScrollView contentContainerStyle={{paddingBottom: 250}}>
         {events
@@ -47,6 +78,7 @@ export default function HomeTasks() {
             color={event.color}
             image={event.image}
             textColor={event.textColor}
+            onEnCours={handleEnCours}
           />
         ))}
       </ScrollView>
