@@ -1,0 +1,40 @@
+{
+  "expo": {
+    "name": "El Agenda",
+    "slug": "CustomAgenda",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/cat_icon.png",
+    "scheme": "customagenda",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/images/cat_icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.anonymous.CustomAgenda"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/cat_icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "edgeToEdgeEnabled": true,
+      "package": "com.anonymous.CustomAgenda"
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "static",
+      "favicon": "./assets/images/favicon.png"
+    },
+    "plugins": [
+      "expo-router"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}
