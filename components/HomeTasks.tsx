@@ -11,6 +11,8 @@ import Animated, {useSharedValue, useAnimatedStyle, withTiming, withRepeat, Easi
 export default function HomeTasks() {
   const {events} = useEvents();
   const [enCours, setEnCours] = useState(false)
+  const varuoState = ["Still", "Idle1", "Idle2", "Idle3"]
+  const [varuo, setVaruo] = useState(varuoState[0]);
   const translateX = useSharedValue(0);
   
   const handleEnCours = (isEnCours: boolean) => {
@@ -27,6 +29,29 @@ export default function HomeTasks() {
     else
       translateX.value = 0;
   }, [enCours]);
+
+  useEffect(() => {
+    if(varuo === "Idle1") {
+      setTimeout(() => {
+        setVaruo('Still');
+      }, 8370);
+    } else if(varuo === "Idle2") {
+      setTimeout(() => {
+        setVaruo('Still');
+      }, 4200);
+    } else if(varuo === "Idle3") {
+      setTimeout(() => {
+        setVaruo('Still');
+      }, 8370);
+    } else if(varuo === "Still") {
+      setTimeout(() => {
+        setVaruo(varuoState[Math.floor(Math.random() * varuoState.length)]);
+      }, 4000);
+    }
+    console.log(varuo)
+  }, [varuo]);
+
+
   return (
     <View style={styles.container}>
       <View style={{flex: 1, borderWidth: 1, borderColor: 'orange', margin: 5, borderRadius: 20}} >
@@ -47,18 +72,43 @@ export default function HomeTasks() {
         {
           enCours ? (
           <View style={{marginLeft: '5%', alignItems: 'flex-start', justifyContent: 'flex-start'}}>
-            <Animated.View style={[{width:134, height: 98, borderStyle: 'dotted', borderBottomColor: 'orange', borderBottomWidth: 2}, animatedStyle]}>
+            <Animated.View style={[{width:134, height: 98}, animatedStyle]}>
               <Image
-                source={require('@/assets/images/Varuo-running.gif')}
-                style={{ width: 134, height: 98, marginBottom: 0, transform: [{ scaleX: -1 }]}}
+                source={require('@/assets/images/Varuo-run.gif')}
+                style={styles.image}
             />
           </Animated.View>
           </View>
           ) : (
-            <Image
-              source={require('@/assets/images/Varuo-happy.gif')}
-              style={{ width: 132, height: 98, alignSelf: 'center', marginBottom: 0, transform: [{ scaleX: -1 }]}}
-            />
+            varuo === "Still" ? (
+              <View style={{width:134, height: 98}}>
+                <Image
+                  source={require('@/assets/images/Varuo-still.gif')}
+                  style={{...styles.image, marginLeft: '200%'}}
+                  />
+              </View>
+            ) : varuo === "Idle1" ? (
+              <View style={{width:134, height: 98}}>
+              <Image
+                source={require('@/assets/images/Varuo-idle1.gif')}
+                style={{...styles.image, marginLeft: '200%'}}
+                />
+                </View>
+            ) : varuo === "Idle2" ? (
+              <View style={{width:134, height: 98}}>
+              <Image
+                source={require('@/assets/images/Varuo-idle2.gif')}
+                style={{...styles.image, marginLeft: '200%'}}
+                />
+                </View>
+            ) : varuo === "Idle3" ? (
+              <View style={{width:134, height: 98}}>
+              <Image
+                source={require('@/assets/images/Varuo-idle3.gif')}
+                style={{...styles.image, marginLeft: '200%'}}
+                />
+                </View>
+            ) : null
           )
         }
       </View>
@@ -66,7 +116,7 @@ export default function HomeTasks() {
         {events
           .filter(event =>
             event.start &&
-            event.start.dateTime.split('T')[0] === new Date().toISOString().split('T')[0]
+            event.start.dateTime.split('T')[0] === new Date().toLocaleDateString("en-CA")
           ).sort((a, b) =>
             new Date(a.start.dateTime).getTime() - new Date(b.start.dateTime).getTime())
           .map((event) => (
@@ -126,4 +176,11 @@ const styles = StyleSheet.create({
   helpLinkText: {
     textAlign: 'center',
   },
+  image: {
+    width: 244, 
+    height: 248, 
+    alignSelf: 'center', 
+    top: -110, 
+    transform: [{ scale: 0.7}],
+  }
 });
