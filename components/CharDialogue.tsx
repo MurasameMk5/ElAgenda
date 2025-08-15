@@ -1,11 +1,11 @@
 import React, { use, useEffect } from 'react';
-import { StyleSheet, Image, Pressable } from 'react-native';
-import { Text, View } from './Themed';
+import { StyleSheet, Image, Pressable, Text, View } from 'react-native';
 import Animated, {useSharedValue, useAnimatedStyle, withTiming, Easing, ReduceMotion} from 'react-native-reanimated';
 export default function CharDialogue() {
     const [phrase, setPhrase] = React.useState<string>('');
     const [chara, setChara] = React.useState();
 
+    //Images pour les personnages
     const characterImagesAless = [
         require('@/assets/images/Akuto.png'),
         require('@/assets/images/Wiless.png'),

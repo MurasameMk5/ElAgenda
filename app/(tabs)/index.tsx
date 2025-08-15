@@ -1,7 +1,4 @@
-import { StyleSheet, TouchableOpacity, Alert, Pressable, Platform} from 'react-native';
-
-import EditScreenInfo from '@/components/EditScreenInfo';
-import { Text, View } from '@/components/Themed';
+import { StyleSheet, TouchableOpacity, Alert, Pressable, View} from 'react-native';
 import HomeTasks from '@/components/HomeTasks';
 import {Image} from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';

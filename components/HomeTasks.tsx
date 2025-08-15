@@ -25,12 +25,13 @@ export default function HomeTasks() {
 
   useEffect(() => {
     if(enCours) 
-      translateX.value = withRepeat(withTiming(200, { duration: 1500, easing: Easing.inOut(Easing.poly(6)), reduceMotion: ReduceMotion.Never }), -1, true);
+      translateX.value = withRepeat(withTiming(200, { duration: 2500, easing: Easing.inOut(Easing.poly(5)), reduceMotion: ReduceMotion.Never }), -1, true);
     else
       translateX.value = 0;
   }, [enCours]);
 
   useEffect(() => {
+    let stillTimeoutId;
     if(varuo === "Idle1") {
       setTimeout(() => {
         setVaruo('Still');
@@ -44,11 +45,12 @@ export default function HomeTasks() {
         setVaruo('Still');
       }, 8370);
     } else if(varuo === "Still") {
-      setTimeout(() => {
+      stillTimeoutId = setTimeout(() => {
         setVaruo(varuoState[Math.floor(Math.random() * varuoState.length)]);
       }, 4000);
-    }
-    console.log(varuo)
+    } else if(enCours)
+        clearTimeout(stillTimeoutId);
+    console.log(enCours)
   }, [varuo]);
 
 
@@ -71,44 +73,47 @@ export default function HomeTasks() {
         </View>
         {
           enCours ? (
-          <View style={{marginLeft: '5%', alignItems: 'flex-start', justifyContent: 'flex-start'}}>
-            <Animated.View style={[{width:134, height: 98}, animatedStyle]}>
+          <Animated.View style={[{width:134, height: 98, marginLeft: '10%'}, animatedStyle]}>
               <Image
                 source={require('@/assets/images/Varuo-run.gif')}
                 style={styles.image}
             />
           </Animated.View>
-          </View>
+          
           ) : (
+            <View style={{alignItems: 'center'}}>
+            {
             varuo === "Still" ? (
               <View style={{width:134, height: 98}}>
                 <Image
                   source={require('@/assets/images/Varuo-still.gif')}
-                  style={{...styles.image, marginLeft: '200%'}}
+                  style={styles.image}
                   />
               </View>
             ) : varuo === "Idle1" ? (
               <View style={{width:134, height: 98}}>
               <Image
                 source={require('@/assets/images/Varuo-idle1.gif')}
-                style={{...styles.image, marginLeft: '200%'}}
+                style={styles.image}
                 />
                 </View>
             ) : varuo === "Idle2" ? (
               <View style={{width:134, height: 98}}>
               <Image
                 source={require('@/assets/images/Varuo-idle2.gif')}
-                style={{...styles.image, marginLeft: '200%'}}
+                style={styles.image}
                 />
                 </View>
             ) : varuo === "Idle3" ? (
               <View style={{width:134, height: 98}}>
               <Image
                 source={require('@/assets/images/Varuo-idle3.gif')}
-                style={{...styles.image, marginLeft: '200%'}}
+                style={styles.image}
                 />
                 </View>
             ) : null
+            }
+          </View>
           )
         }
       </View>

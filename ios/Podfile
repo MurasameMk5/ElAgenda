@@ -13,7 +13,7 @@ install! 'cocoapods',
 
 prepare_react_native_project!
 
-target 'CustomAgenda' do
+target 'ElAgenda' do
   use_expo_modules!
 
   if ENV['EXPO_USE_COMMUNITY_AUTOLINKING'] == '1'
@@ -61,4 +61,10 @@ target 'CustomAgenda' do
       end
     end
   end
+end
+
+$NotifeeExtension = true
+target 'NotifeeNotificationServiceExtension' do
+  pod 'RNNotifeeCore', :path => '../node_modules/@notifee/react-native/RNNotifeeCore.podspec'
+  use_frameworks! :linkage => podfile_properties['ios.useFrameworks'].to_sym if podfile_properties['ios.useFrameworks']
 end

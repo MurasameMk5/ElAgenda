@@ -2,6 +2,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect, useState } from 'react';
 import { Text, View, StyleSheet, ImageBackground } from 'react-native';
 import * as Notifications from 'expo-notifications';
+import Animated, {useSharedValue, useAnimatedStyle, withTiming, withRepeat, Easing, ReduceMotion} from 'react-native-reanimated';
+
 
 type props= {
   start: string;
@@ -10,37 +12,48 @@ type props= {
   image?: string;
   color?: string;
   textColor?: string;
-  onEnCours?: (isEnCours: boolean) => void;
+  onEnCours: (isEnCours: boolean) => void;
 }
 
 export default function TasksMiniature(props: props) {
   const [time, setTime] = useState('');
+  const [enCours, setEnCours] = useState(false);
+  const scale = useSharedValue(1);
 
+  
+  
+  const handleEnCours = () =>{
+    if(props.start < new Date().toLocaleTimeString('fr-Fr').slice(0, 5) && new Date().toLocaleTimeString().slice(0, 5) < props.end){
+      setEnCours(true);
+      return;
+    } else
+      setEnCours(false);
+  }
+  
   useEffect(()=>{
     setTime(new Date().toISOString());
     console.log("aujourd'hui: ", new Date().toLocaleTimeString(), 'start: ', props.start, 'end: ', props.end);
-  }, [])
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      props.onEnCours && props.onEnCours(enCours());
-    }, 60000); // vérifie chaque minute
-
-    // Appel initial
-    props.onEnCours && props.onEnCours(enCours());
-
-    return () => clearInterval(interval);
+    handleEnCours();
   }, [props.start, props.end]);
 
-  const enCours = () =>{
-    return props.start < new Date().toLocaleTimeString('fr-Fr').slice(0, 5) && new Date().toLocaleTimeString().slice(0, 5) < props.end;
-  }
-  
+  useEffect(() => {
+      props.onEnCours(enCours);
+      console.log("en cours: ", enCours);
+      if(enCours) 
+        scale.value = withRepeat(withTiming(1.05, { duration: 800, easing: Easing.inOut(Easing.poly(5)), reduceMotion: ReduceMotion.Never}), -1, true);
+      else 
+        scale.value = 1;
+  }, [enCours]);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+      transform: [{ scale: scale.value }],
+    }));
+
   return (
-   <View style={{ ...styles.container, backgroundColor: props.color, shadowColor: 'red', shadowOffset: { width: -5, height: 3 }, shadowOpacity: 0.3, shadowRadius: 5 }}>
+   <Animated.View style={[{ ...styles.container, backgroundColor: props.color, shadowColor: 'red', shadowOffset: { width: -5, height: 3 }, shadowOpacity: 0.3, shadowRadius: 5 }, animatedStyle]}>
     <View style={{ borderColor: 'white', borderWidth: 1, borderRadius: 10, margin: 5,padding: 5, zIndex: 10 }}>
       <View style={{backgroundColor: props.color, width: 110, height: 20, position: 'absolute', top: -6, zIndex: 25}}>
-        <Text style={{ fontWeight: 'bold', fontSize: 16, left:6, top: -2, color: enCours() ? 'rgb(255, 251, 231)' : props.textColor}}>
+        <Text style={{ fontWeight: 'bold', fontSize: 16, left:6, top: -2, color: enCours ? 'rgb(255, 242, 178)' : props.textColor}}>
             {props.start} à {props.end}
         </Text>
       
@@ -70,7 +83,7 @@ export default function TasksMiniature(props: props) {
       end={{ x: 1, y: 0 }}
       style={styles.image}
     />
-</View>
+</Animated.View>
   )
 }
 

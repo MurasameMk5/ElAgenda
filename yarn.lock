@@ -890,7 +890,7 @@
   resolved "https://registry.npmjs.org/@expo/config-types/-/config-types-53.0.5.tgz"
   integrity sha512-kqZ0w44E+HEGBjy+Lpyn0BVL5UANg/tmNixxaRMLS6nf37YsDrLk2VMAmeKMMk5CKG0NmOdVv3ngeUjRQMsy9g==
 
-"@expo/config@~11.0.11", "@expo/config@~11.0.12", "@expo/config@~11.0.9":
+"@expo/config@~11.0.11", "@expo/config@~11.0.12":
   version "11.0.12"
   resolved "https://registry.npmjs.org/@expo/config/-/config-11.0.12.tgz"
   integrity sha512-XEh7g5F8OziJ6eZzBi93qt2YwmPceD3yAEd4Qv/ODK3MrgFCmB5IAJJ2ZFepdeoQFpcxS26Nl4aUuIJYEhJiUw==
@@ -918,20 +918,9 @@
     debug "^3.1.0"
     glob "^10.4.2"
 
-"@expo/env@~1.0.5", "@expo/env@~1.0.6":
-  version "1.0.6"
-  resolved "https://registry.npmjs.org/@expo/env/-/env-1.0.6.tgz"
-  integrity sha512-aokrM+EYgyaJNmyo8QhphP3egVi0E7/4PiAx+riW1k39wu26POCg5NBdOSBHoYGmq1NXbhpFepIFDWVaCw1UeA==
-  dependencies:
-    chalk "^4.0.0"
-    debug "^4.3.4"
-    dotenv "~16.4.5"
-    dotenv-expand "~11.0.6"
-    getenv "^2.0.0"
-
-"@expo/env@~1.0.7":
+"@expo/env@~1.0.6", "@expo/env@~1.0.7":
   version "1.0.7"
-  resolved "https://registry.yarnpkg.com/@expo/env/-/env-1.0.7.tgz#6ee604e158d0f140fc2be711b9a7cb3adc341889"
+  resolved "https://registry.npmjs.org/@expo/env/-/env-1.0.7.tgz"
   integrity sha512-qSTEnwvuYJ3umapO9XJtrb1fAqiPlmUUg78N0IZXXGwQRt+bkp0OBls+Y5Mxw/Owj8waAM0Z3huKKskRADR5ow==
   dependencies:
     chalk "^4.0.0"
@@ -958,25 +947,10 @@
     resolve-from "^5.0.0"
     semver "^7.6.0"
 
-"@expo/image-utils@^0.7.4":
+"@expo/image-utils@^0.7.5", "@expo/image-utils@^0.7.6":
   version "0.7.6"
-  resolved "https://registry.yarnpkg.com/@expo/image-utils/-/image-utils-0.7.6.tgz#b8442bef770e1c7b39997d57f666bffeeced0a7a"
+  resolved "https://registry.npmjs.org/@expo/image-utils/-/image-utils-0.7.6.tgz"
   integrity sha512-GKnMqC79+mo/1AFrmAcUcGfbsXXTRqOMNS1umebuevl3aaw+ztsYEFEiuNhHZW7PQ3Xs3URNT513ZxKhznDscw==
-  dependencies:
-    "@expo/spawn-async" "^1.7.2"
-    chalk "^4.0.0"
-    getenv "^2.0.0"
-    jimp-compact "0.16.1"
-    parse-png "^2.1.0"
-    resolve-from "^5.0.0"
-    semver "^7.6.0"
-    temp-dir "~2.0.0"
-    unique-string "~2.0.0"
-
-"@expo/image-utils@^0.7.5":
-  version "0.7.5"
-  resolved "https://registry.npmjs.org/@expo/image-utils/-/image-utils-0.7.5.tgz"
-  integrity sha512-92sk+dplZHlZuv4jAWmGBOqWf70hcb0zoObmjQRgxvZbKWXlQ6ifANaOUhoeJKgNWSB9BrLoW6v/mUyrDUdK+A==
   dependencies:
     "@expo/spawn-async" "^1.7.2"
     chalk "^4.0.0"
@@ -1131,7 +1105,7 @@
 
 "@ide/backoff@^1.0.0":
   version "1.0.0"
-  resolved "https://registry.yarnpkg.com/@ide/backoff/-/backoff-1.0.0.tgz#466842c25bd4a4833e0642fab41ccff064010176"
+  resolved "https://registry.npmjs.org/@ide/backoff/-/backoff-1.0.0.tgz"
   integrity sha512-F0YfUDjvT+Mtt/R4xdl2X0EYCHMMiJqNLdxHD++jDT5ydEFIyqbCHh51Qx2E211dgZprPKhV7sHmnXKpLuvc5g==
 
 "@isaacs/cliui@^8.0.2":
@@ -1406,6 +1380,11 @@
   dependencies:
     "@jridgewell/resolve-uri" "^3.1.0"
     "@jridgewell/sourcemap-codec" "^1.4.14"
+
+"@notifee/react-native@^9.1.8":
+  version "9.1.8"
+  resolved "https://registry.yarnpkg.com/@notifee/react-native/-/react-native-9.1.8.tgz#3d55cb3fbcc21f9e35931e366afdf64b294da891"
+  integrity sha512-Az/dueoPerJsbbjRxu8a558wKY+gONUrfoy3Hs++5OqbeMsR0dYe6P+4oN6twrLFyzAhEA1tEoZRvQTFDRmvQg==
 
 "@pkgjs/parseargs@^0.11.0":
   version "0.11.0"
@@ -2014,7 +1993,7 @@ asap@~2.0.3, asap@~2.0.6:
 
 assert@^2.0.0:
   version "2.1.0"
-  resolved "https://registry.yarnpkg.com/assert/-/assert-2.1.0.tgz#6d92a238d05dc02e7427c881fb8be81c8448b2dd"
+  resolved "https://registry.npmjs.org/assert/-/assert-2.1.0.tgz"
   integrity sha512-eLHpSK/Y4nhMJ07gDaAzoX/XAKS8PSaojml3M0DM4JpV1LAi5JOJ/p6H/XWrl8L+DzVEvVCW1z3vWAaB9oTsQw==
   dependencies:
     call-bind "^1.0.2"
@@ -2035,7 +2014,7 @@ asynckit@^0.4.0:
 
 available-typed-arrays@^1.0.7:
   version "1.0.7"
-  resolved "https://registry.yarnpkg.com/available-typed-arrays/-/available-typed-arrays-1.0.7.tgz#a5cc375d6a03c2efc87a553f3e0b1522def14846"
+  resolved "https://registry.npmjs.org/available-typed-arrays/-/available-typed-arrays-1.0.7.tgz"
   integrity sha512-wvUjBtSGN7+7SjNpq/9M2Tg350UZD3q62IFZLbRAR1bSMlCo1ZaeW+BJ+D090e4hIIZLBcTDWe4Mh4jvUDajzQ==
   dependencies:
     possible-typed-array-names "^1.0.0"
@@ -2175,7 +2154,7 @@ babel-preset-jest@^29.6.3:
 
 badgin@^1.1.5:
   version "1.2.3"
-  resolved "https://registry.yarnpkg.com/badgin/-/badgin-1.2.3.tgz#994b5f519827d7d5422224825b2c8faea2bc43ad"
+  resolved "https://registry.npmjs.org/badgin/-/badgin-1.2.3.tgz"
   integrity sha512-NQGA7LcfCpSzIbGRbkgjgdWkjy7HI+Th5VLxTJfW5EeaAf3fnS+xWQaQOCYiny+q6QSvxqoSO04vCx+4u++EJw==
 
 balanced-match@^1.0.0:
@@ -2288,7 +2267,7 @@ call-bind-apply-helpers@^1.0.0, call-bind-apply-helpers@^1.0.1, call-bind-apply-
 
 call-bind@^1.0.0, call-bind@^1.0.2, call-bind@^1.0.7, call-bind@^1.0.8:
   version "1.0.8"
-  resolved "https://registry.yarnpkg.com/call-bind/-/call-bind-1.0.8.tgz#0736a9660f537e3388826f440d5ec45f744eaa4c"
+  resolved "https://registry.npmjs.org/call-bind/-/call-bind-1.0.8.tgz"
   integrity sha512-oKlSFMcMwpUg2ednkhQ454wfWiU/ul3CkJe/PEHcTKuiX6RpbehUiFMXu13HalGZxfUwCQzZG747YXBn1im9ww==
   dependencies:
     call-bind-apply-helpers "^1.0.0"
@@ -2298,7 +2277,7 @@ call-bind@^1.0.0, call-bind@^1.0.2, call-bind@^1.0.7, call-bind@^1.0.8:
 
 call-bound@^1.0.2, call-bound@^1.0.3, call-bound@^1.0.4:
   version "1.0.4"
-  resolved "https://registry.yarnpkg.com/call-bound/-/call-bound-1.0.4.tgz#238de935d2a2a692928c538c7ccfa91067fd062a"
+  resolved "https://registry.npmjs.org/call-bound/-/call-bound-1.0.4.tgz"
   integrity sha512-+ys997U96po4Kx/ABpBCqhA9EuxJaQWDQg7295H4hBphv3IZg0boBKuwYpt4YXp6MZ5AmZQnU/tyMTlRpaSejg==
   dependencies:
     call-bind-apply-helpers "^1.0.2"
@@ -2722,7 +2701,7 @@ defaults@^1.0.3:
 
 define-data-property@^1.0.1, define-data-property@^1.1.4:
   version "1.1.4"
-  resolved "https://registry.yarnpkg.com/define-data-property/-/define-data-property-1.1.4.tgz#894dc141bb7d3060ae4366f6a0107e68fbe48c5e"
+  resolved "https://registry.npmjs.org/define-data-property/-/define-data-property-1.1.4.tgz"
   integrity sha512-rBMvIzlpA8v6E+SJZoo++HAYqsLrkg7MSfIinMPFhmkorw7X+dOXVJQs+QT69zGkzMyfDnIMN2Wid1+NbL3T+A==
   dependencies:
     es-define-property "^1.0.0"
@@ -2736,7 +2715,7 @@ define-lazy-prop@^2.0.0:
 
 define-properties@^1.1.3, define-properties@^1.2.1:
   version "1.2.1"
-  resolved "https://registry.yarnpkg.com/define-properties/-/define-properties-1.2.1.tgz#10781cc616eb951a80a034bafcaa7377f6af2b6c"
+  resolved "https://registry.npmjs.org/define-properties/-/define-properties-1.2.1.tgz"
   integrity sha512-8QmQKqEASLd5nx0U1B1okLElbUuuttJ/AnYmRXbbbGDWh6uS208EjD4Xqq/I9wK7u0v6O08XhTWnt5XtEbR6Dg==
   dependencies:
     define-data-property "^1.0.1"
@@ -2996,9 +2975,9 @@ expect@^29.7.0:
     jest-message-util "^29.7.0"
     jest-util "^29.7.0"
 
-expo-application@~6.1.4:
+expo-application@~6.1.5:
   version "6.1.5"
-  resolved "https://registry.yarnpkg.com/expo-application/-/expo-application-6.1.5.tgz#78e569ed8ab237c9bae67d693fec629dd447e53d"
+  resolved "https://registry.npmjs.org/expo-application/-/expo-application-6.1.5.tgz"
   integrity sha512-ToImFmzw8luY043pWFJhh2ZMm4IwxXoHXxNoGdlhD4Ym6+CCmkAvCglg0FK8dMLzAb+/XabmOE7Rbm8KZb6NZg==
 
 expo-asset@~11.1.6:
@@ -3009,17 +2988,9 @@ expo-asset@~11.1.6:
     "@expo/image-utils" "^0.7.5"
     expo-constants "~17.1.6"
 
-expo-constants@~17.1.6:
-  version "17.1.6"
-  resolved "https://registry.npmjs.org/expo-constants/-/expo-constants-17.1.6.tgz"
-  integrity sha512-q5mLvJiLtPcaZ7t2diSOlQ2AyxIO8YMVEJsEfI/ExkGj15JrflNQ7CALEW6IF/uNae/76qI/XcjEuuAyjdaCNw==
-  dependencies:
-    "@expo/config" "~11.0.9"
-    "@expo/env" "~1.0.5"
-
-expo-constants@~17.1.7:
+expo-constants@~17.1.6, expo-constants@~17.1.7:
   version "17.1.7"
-  resolved "https://registry.yarnpkg.com/expo-constants/-/expo-constants-17.1.7.tgz#35194c1cef51f1ea756333418f1e077be79a012b"
+  resolved "https://registry.npmjs.org/expo-constants/-/expo-constants-17.1.7.tgz"
   integrity sha512-byBjGsJ6T6FrLlhOBxw4EaiMXrZEn/MlUYIj/JAd+FS7ll5X/S4qVRbIimSJtdW47hXMq0zxPfJX6njtA56hHA==
   dependencies:
     "@expo/config" "~11.0.12"
@@ -3027,7 +2998,7 @@ expo-constants@~17.1.7:
 
 expo-device@~7.1.4:
   version "7.1.4"
-  resolved "https://registry.yarnpkg.com/expo-device/-/expo-device-7.1.4.tgz#84ae7c2520cc45f15a9cb0433ae1226c33f7a8ef"
+  resolved "https://registry.npmjs.org/expo-device/-/expo-device-7.1.4.tgz"
   integrity sha512-HS04IiE1Fy0FRjBLurr9e5A6yj3kbmQB+2jCZvbSGpsjBnCLdSk/LCii4f5VFhPIBWJLyYuN5QqJyEAw6BcS4Q==
   dependencies:
     ua-parser-js "^0.7.33"
@@ -3098,17 +3069,17 @@ expo-modules-core@2.4.2:
     invariant "^2.2.4"
 
 expo-notifications@~0.31.3:
-  version "0.31.3"
-  resolved "https://registry.yarnpkg.com/expo-notifications/-/expo-notifications-0.31.3.tgz#eb82c9975e26dcc4fa694b79970792c897ad8d16"
-  integrity sha512-AATxKoav5ZvwcRel2SKYNZc+EvOAKvAjxyBezC8y3J5fMNe/uKIhMzh3FN4fKdOi9ao/UBHkvLiUO2MqVnvBNg==
+  version "0.31.4"
+  resolved "https://registry.npmjs.org/expo-notifications/-/expo-notifications-0.31.4.tgz"
+  integrity sha512-NnGKIFGpgZU66qfiFUyjEBYsS77VahURpSSeWEOLt+P1zOaUFlgx2XqS+dxH3/Bn1Vm7TMj04qKsK5KvzR/8Lw==
   dependencies:
-    "@expo/image-utils" "^0.7.4"
+    "@expo/image-utils" "^0.7.6"
     "@ide/backoff" "^1.0.0"
     abort-controller "^3.0.0"
     assert "^2.0.0"
     badgin "^1.1.5"
-    expo-application "~6.1.4"
-    expo-constants "~17.1.6"
+    expo-application "~6.1.5"
+    expo-constants "~17.1.7"
 
 expo-router@~5.1.0:
   version "5.1.2"
@@ -3297,7 +3268,7 @@ fontfaceobserver@^2.1.0:
 
 for-each@^0.3.5:
   version "0.3.5"
-  resolved "https://registry.yarnpkg.com/for-each/-/for-each-0.3.5.tgz#d650688027826920feeb0af747ee7b9421a41d47"
+  resolved "https://registry.npmjs.org/for-each/-/for-each-0.3.5.tgz"
   integrity sha512-dKx12eRCVIzqCxFGplyFKJMPvLEWgmNtUrpTiJIR5u97zEhRG8ySrtboPHZXx7daLxQVrl643cTzbab2tkQjxg==
   dependencies:
     is-callable "^1.2.7"
@@ -3441,7 +3412,7 @@ has-flag@^4.0.0:
 
 has-property-descriptors@^1.0.0, has-property-descriptors@^1.0.2:
   version "1.0.2"
-  resolved "https://registry.yarnpkg.com/has-property-descriptors/-/has-property-descriptors-1.0.2.tgz#963ed7d071dc7bf5f084c5bfbe0d1b6222586854"
+  resolved "https://registry.npmjs.org/has-property-descriptors/-/has-property-descriptors-1.0.2.tgz"
   integrity sha512-55JNKuIW+vq4Ke1BjOTjM2YctQIvCT7GFzHwmfZPGo5wnrgkid0YQtnAleFSqumZm4az3n2BS+erby5ipJdgrg==
   dependencies:
     es-define-property "^1.0.0"
@@ -3640,7 +3611,7 @@ invariant@^2.2.4:
 
 is-arguments@^1.0.4:
   version "1.2.0"
-  resolved "https://registry.yarnpkg.com/is-arguments/-/is-arguments-1.2.0.tgz#ad58c6aecf563b78ef2bf04df540da8f5d7d8e1b"
+  resolved "https://registry.npmjs.org/is-arguments/-/is-arguments-1.2.0.tgz"
   integrity sha512-7bVbi0huj/wrIAOzb8U1aszg9kdi3KN/CyU19CTI7tAoZYEZoL9yCDXpbXN+uPsuWnP02cyug1gleqq+TU+YCA==
   dependencies:
     call-bound "^1.0.2"
@@ -3658,7 +3629,7 @@ is-arrayish@^0.3.1:
 
 is-callable@^1.2.7:
   version "1.2.7"
-  resolved "https://registry.yarnpkg.com/is-callable/-/is-callable-1.2.7.tgz#3bc2a85ea742d9e36205dcacdd72ca1fdc51b055"
+  resolved "https://registry.npmjs.org/is-callable/-/is-callable-1.2.7.tgz"
   integrity sha512-1BC0BVFhS/p0qtw6enp8e+8OD0UrK0oFLztSjNzhcKA3WDuJxxAPXzPuPtKkjEY9UUoEWlX/8fgKeu2S8i9JTA==
 
 is-core-module@^2.16.0:
@@ -3690,7 +3661,7 @@ is-generator-fn@^2.0.0:
 
 is-generator-function@^1.0.7:
   version "1.1.0"
-  resolved "https://registry.yarnpkg.com/is-generator-function/-/is-generator-function-1.1.0.tgz#bf3eeda931201394f57b5dba2800f91a238309ca"
+  resolved "https://registry.npmjs.org/is-generator-function/-/is-generator-function-1.1.0.tgz"
   integrity sha512-nPUB5km40q9e8UfN/Zc24eLlzdSf9OfKByBw9CIdw4H1giPMeA0OIJvbchsCu4npfI2QcMVBsGEBHKZ7wLTWmQ==
   dependencies:
     call-bound "^1.0.3"
@@ -3700,7 +3671,7 @@ is-generator-function@^1.0.7:
 
 is-nan@^1.3.2:
   version "1.3.2"
-  resolved "https://registry.yarnpkg.com/is-nan/-/is-nan-1.3.2.tgz#043a54adea31748b55b6cd4e09aadafa69bd9e1d"
+  resolved "https://registry.npmjs.org/is-nan/-/is-nan-1.3.2.tgz"
   integrity sha512-E+zBKpQ2t6MEo1VsonYmluk9NxGrbzpeeLC2xIViuO2EjU2xsXsBPwTr3Ykv9l08UYEVEdWeRZNouaZqF6RN0w==
   dependencies:
     call-bind "^1.0.0"
@@ -3723,7 +3694,7 @@ is-potential-custom-element-name@^1.0.1:
 
 is-regex@^1.2.1:
   version "1.2.1"
-  resolved "https://registry.yarnpkg.com/is-regex/-/is-regex-1.2.1.tgz#76d70a3ed10ef9be48eb577887d74205bf0cad22"
+  resolved "https://registry.npmjs.org/is-regex/-/is-regex-1.2.1.tgz"
   integrity sha512-MjYsKHO5O7mCsmRGxWcLWheFqN9DJ/2TmngvjKXihe6efViPqc274+Fx/4fYj/r03+ESvBdTXK0V6tA3rgez1g==
   dependencies:
     call-bound "^1.0.2"
@@ -3743,7 +3714,7 @@ is-stream@^2.0.0:
 
 is-typed-array@^1.1.3:
   version "1.1.15"
-  resolved "https://registry.yarnpkg.com/is-typed-array/-/is-typed-array-1.1.15.tgz#4bfb4a45b61cee83a5a46fba778e4e8d59c0ce0b"
+  resolved "https://registry.npmjs.org/is-typed-array/-/is-typed-array-1.1.15.tgz"
   integrity sha512-p3EcsicXjit7SaskXHs1hA91QxgTw46Fv6EFKKGS5DRFLD8yKnohjF3hxoju94b/OcMZoQukzpPpBE9uLVKzgQ==
   dependencies:
     which-typed-array "^1.1.16"
@@ -4954,7 +4925,7 @@ object-assign@^4.0.1, object-assign@^4.1.0, object-assign@^4.1.1:
 
 object-is@^1.1.5:
   version "1.1.6"
-  resolved "https://registry.yarnpkg.com/object-is/-/object-is-1.1.6.tgz#1a6a53aed2dd8f7e6775ff870bea58545956ab07"
+  resolved "https://registry.npmjs.org/object-is/-/object-is-1.1.6.tgz"
   integrity sha512-F8cZ+KfGlSGi09lJT7/Nd6KJZ9ygtvYC0/UYYLI9nmQKLMnydpB9yvbv9K1uSkEu7FU9vYPmVwLg328tX+ot3Q==
   dependencies:
     call-bind "^1.0.7"
@@ -4962,12 +4933,12 @@ object-is@^1.1.5:
 
 object-keys@^1.1.1:
   version "1.1.1"
-  resolved "https://registry.yarnpkg.com/object-keys/-/object-keys-1.1.1.tgz#1c47f272df277f3b1daf061677d9c82e2322c60e"
+  resolved "https://registry.npmjs.org/object-keys/-/object-keys-1.1.1.tgz"
   integrity sha512-NuAESUOUMrlIXOfHKzD6bpPu3tYt3xvjNdRIQ+FeT0lNb4K8WR70CaDxhuNguS2XG+GjkyMwOzsN5ZktImfhLA==
 
 object.assign@^4.1.4:
   version "4.1.7"
-  resolved "https://registry.yarnpkg.com/object.assign/-/object.assign-4.1.7.tgz#8c14ca1a424c6a561b0bb2a22f66f5049a945d3d"
+  resolved "https://registry.npmjs.org/object.assign/-/object.assign-4.1.7.tgz"
   integrity sha512-nK28WOo+QIjBkDduTINE4JkF/UJJKyf2EJxvJKfblDpyg0Q+pkOHNTL0Qwy6NP6FhE/EnzV73BxxqcJaXY9anw==
   dependencies:
     call-bind "^1.0.8"
@@ -5192,7 +5163,7 @@ pngjs@^3.3.0:
 
 possible-typed-array-names@^1.0.0:
   version "1.1.0"
-  resolved "https://registry.yarnpkg.com/possible-typed-array-names/-/possible-typed-array-names-1.1.0.tgz#93e3582bc0e5426586d9d07b79ee40fc841de4ae"
+  resolved "https://registry.npmjs.org/possible-typed-array-names/-/possible-typed-array-names-1.1.0.tgz"
   integrity sha512-/+5VFTchJDoVj3bhoqi6UeymcD00DAwb1nJwamzPvHEszJ4FpF6SNNbUbOS8yI56qHzdV8eK0qEfOSiodkTdxg==
 
 postcss-value-parser@^4.2.0:
@@ -5688,7 +5659,7 @@ safe-buffer@5.2.1:
 
 safe-regex-test@^1.1.0:
   version "1.1.0"
-  resolved "https://registry.yarnpkg.com/safe-regex-test/-/safe-regex-test-1.1.0.tgz#7f87dfb67a3150782eaaf18583ff5d1711ac10c1"
+  resolved "https://registry.npmjs.org/safe-regex-test/-/safe-regex-test-1.1.0.tgz"
   integrity sha512-x/+Cz4YrimQxQccJf5mKEbIa1NzeCRNI5Ecl/ekmlYaampdNLPalVyIcCZNNH3MvmqBugV5TMYZXv0ljslUlaw==
   dependencies:
     call-bound "^1.0.2"
@@ -5802,7 +5773,7 @@ server-only@^0.0.1:
 
 set-function-length@^1.2.2:
   version "1.2.2"
-  resolved "https://registry.yarnpkg.com/set-function-length/-/set-function-length-1.2.2.tgz#aac72314198eaed975cf77b2c3b6b880695e5449"
+  resolved "https://registry.npmjs.org/set-function-length/-/set-function-length-1.2.2.tgz"
   integrity sha512-pgRc4hJ4/sNjWCSS9AmnS40x3bNMDTknHgL5UaMBTMyJnU90EgWh1Rz+MC9eFu4BuN/UwZjKQuY/1v3rM7HMfg==
   dependencies:
     define-data-property "^1.1.4"
@@ -6377,7 +6348,7 @@ use-sync-external-store@^1.5.0:
 
 util@^0.12.5:
   version "0.12.5"
-  resolved "https://registry.yarnpkg.com/util/-/util-0.12.5.tgz#5f17a6059b73db61a875668781a1c2b136bd6fbc"
+  resolved "https://registry.npmjs.org/util/-/util-0.12.5.tgz"
   integrity sha512-kZf/K6hEIrWHI6XqOFUiiMa+79wE/D8Q+NCNAWclkyg3b4d2k7s0QGepNjiABc+aR3N1PAyHL7p6UcLY6LmrnA==
   dependencies:
     inherits "^2.0.3"
@@ -6510,7 +6481,7 @@ whatwg-url@^5.0.0:
 
 which-typed-array@^1.1.16, which-typed-array@^1.1.2:
   version "1.1.19"
-  resolved "https://registry.yarnpkg.com/which-typed-array/-/which-typed-array-1.1.19.tgz#df03842e870b6b88e117524a4b364b6fc689f956"
+  resolved "https://registry.npmjs.org/which-typed-array/-/which-typed-array-1.1.19.tgz"
   integrity sha512-rEvr90Bck4WZt9HHFC4DJMsjvu7x+r6bImz0/BrbWb7A2djJ8hnZMrWnHo9F8ssv0OMErasDhftrfROTyqSDrw==
   dependencies:
     available-typed-arrays "^1.0.7"

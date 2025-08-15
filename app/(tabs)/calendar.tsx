@@ -1,6 +1,5 @@
-import { Alert, StyleSheet, ImageBackground, TouchableOpacity, TextInput, Pressable } from 'react-native';
+import { Alert, StyleSheet, ImageBackground, TouchableOpacity, TextInput, Pressable, Text, View } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Text, View } from '@/components/Themed';
 import { CalendarBody, CalendarContainer, CalendarHeader, HeaderItemProps, parseDateTime } from '@howljs/calendar-kit';
 import { useEffect, useState, useCallback, useRef } from 'react';
 import ColorPicker, { HueSlider, Panel1, Preview } from 'reanimated-color-picker';
@@ -12,16 +11,13 @@ import * as DocumentPicker from 'expo-document-picker';
 import * as ScreenOrientation from 'expo-screen-orientation';
 import CalendarPicker from 'react-native-calendar-picker';
 import Modal from 'react-native-modal'
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Platform } from 'react-native';
-import { scheduleNotificationAsync } from 'expo-notifications';
-import { useNotification } from '../notificationsContext';
-import * as Notifications from 'expo-notifications'
 import * as FileSystem from 'expo-file-system';
+import notifee, { TimestampTrigger, TriggerType, AndroidImportance } from '@notifee/react-native';
 
 export default function TabTwoScreen() {
-  const {scheduleNotificationAsync, cancelNotificationAsync} = useNotification();
   const [showStartPicker, setShowStartPicker] = useState(false);
   const [showEndPicker, setShowEndPicker] = useState(false);  
   const calendarRef = useRef(null);
@@ -129,6 +125,13 @@ export default function TabTwoScreen() {
 
   /*
   useEffect(() => {
+    const deleteChannel = async () => {
+      await notifee.deleteChannel('task');
+    }
+    deleteChannel();
+  }, []);*/
+  /*
+  useEffect(() => {
     events.filter(function(event) {
       return event.recurrenceRule != "none";
     }).map((event) => {
@@ -161,20 +164,39 @@ export default function TabTwoScreen() {
     }
   }
 
-  const sendNotification = async (title: string, start: any) =>{
-    const scheduledNotif = await Notifications.scheduleNotificationAsync({
-      content: {
-        title: "Au travail !",
-        body: title,
-      },
-      trigger: {
-        type: Notifications.SchedulableTriggerInputTypes.DATE,
-        date: new Date(start.dateTime),
-      },
-    })
-    console.log("Notification scheduled:", scheduledNotif);
-    return scheduledNotif;
+    //===================Créer une notification===================
+
+  const sendNotification = async (title: string, start: any) => {
+
+    const channelId = await notifee.createChannel({
+      id: 'tasks',
+      name: 'task reminder',
+      sound: 'varuo_sound',
+      importance: AndroidImportance.HIGH
+    });
+
+    const trigger: TimestampTrigger = {
+      type: TriggerType.TIMESTAMP,
+      timestamp: new Date(start.dateTime).getTime(),
+    }
+
+    
+    try {  
+      await notifee.createTriggerNotification(
+          {
+            id: `${title}-${start.dateTime}`,
+            title: "Au travail !",
+            body: title,
+            android: {channelId},
+          },
+          trigger,
+        );
+    } catch (error) {
+      console.log("Erreur lors de la création de la notification", error)
+    }
   }
+
+    //===================Créer un évènement===================
 
   const createEvent = (event: { start: any; end: any; }) =>{
     console.log('Event created:', event);
@@ -189,16 +211,20 @@ export default function TabTwoScreen() {
       start: event.start,
     });
     setModalVisible(true)
-    console.log(new Date().toISOString());
   }
+  //===================Modifier un évènement===================
 
-  const ModifyEvent = (event: { id: string; start: any; end: any; title: string; color: string; recurrenceRule: string}) => {
-    console.log("All events:", event);
-    
-    const updatedEvents = events.map(ev =>
-      ev.id === event.id
-        ? { ...event, value: value }
-        : ev
+  const ModifyEvent = async (event: { id: string; start: any; end: any; title: string; color: string; recurrenceRule: string}) => {
+    console.log("new events:", event);
+    const notifId = `${event.title}-${event.start.dateTime}`;
+    await sendNotification(event.title, event.start);
+    const updatedEvents = events.map((ev:any) =>{
+      if(ev.id === event.id){
+        notifee.cancelNotification(ev.notification);
+        ev = {...event, value: value, notification: notifId}
+      }
+      return ev;
+    }
     );
 
     if(value != 'none'){
@@ -212,6 +238,8 @@ export default function TabTwoScreen() {
     setEditingEvent(false);
     setModalVisible(false);
   }
+
+  //===================Supprimer un évènement===================
 
   const deleteEvent = (event) => {
   Alert.alert(
@@ -228,8 +256,8 @@ export default function TabTwoScreen() {
       {
         text: 'Uniquement celui-ci',
         style: 'destructive',
-        onPress: () => {
-          cancelNotificationAsync(event.notification);
+        onPress: async () => {
+          notifee.cancelNotification(event.notification);
           const updatedEvents = events.filter(ev => ev.id !== event.id);
           setEvents(updatedEvents);
           AsyncStorage.setItem('events', JSON.stringify(updatedEvents));
@@ -249,7 +277,7 @@ export default function TabTwoScreen() {
             new Date(ev.start.dateTime.split('T')[0]) >= new Date(event.start.dateTime.split('T')[0])
           );
           removedEvents.forEach((ev) => {
-            cancelNotificationAsync(ev.notification);
+            notifee.cancelNotification(ev.notification);
           });
           console.log('Removed events:', removedEvents);
           setEvents(updatedEvents);
@@ -261,6 +289,7 @@ export default function TabTwoScreen() {
     { cancelable: true }
   );
 };
+  //===================Poster un évènement===================
 
   const postEvent = async () => {
     console.log(newEvent);
@@ -351,7 +380,8 @@ export default function TabTwoScreen() {
       }
     }
     for(const event of eventsToAdd){
-      event.notification = await sendNotification(event.title, event.start);
+      event.notification = `${event.title}-${event.start.dateTime}`
+      await sendNotification(event.title, event.start);
       console.log("new event" , event);
     }
     setEvents([...events, ...eventsToAdd]);
@@ -360,117 +390,7 @@ export default function TabTwoScreen() {
     await AsyncStorage.setItem('events', JSON.stringify([...events, ...eventsToAdd]));
   }  
 
-  /*const postEvent = async () => {
-    console.log(newEvent);
-    if (!newEvent.title || !newEvent.start.dateTime || !newEvent.end.dateTime ) {
-      Alert.alert('Erreur', 'Veuillez remplir tous les champs de l\'événement.');
-      return;
-    }
-
-    let recurrenceRule = '';
-    switch (value) {
-      case 'everyday':
-        recurrenceRule = 'RRULE:FREQ=DAILY';
-        break;
-      case 'every_weekdays':
-        recurrenceRule = 'RRULE:FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,FR';
-        break;
-      case 'weekly':
-        recurrenceRule = 'RRULE:FREQ=WEEKLY';
-        break;
-      default:
-        recurrenceRule = 'none';
-        break;
-    }
-
-    let baseId = 1;
-    if (events.length > 0) {
-      // Récupère le max des id numériques (avant le ':')
-      baseId = Math.max(
-        ...events.map(ev => parseInt(ev.id.split(':')[0], 10) || 0)
-      ) + 1;
-    }
-
-    const eventsToAdd = [];
-    
-    if(recurrenceRule === 'none') {
-      eventsToAdd.push({
-        ...newEvent,
-        id: String(baseId),
-        recurrenceRule: 'none',
-        value: 'none',
-      });
-    } else {
-      let eventCreated = 0;
-      let currentStart = newEvent.start.dateTime;
-      let currentEnd = newEvent.end.dateTime;
-      let currentStartDay = (parseInt(currentStart.split('T')[0].split('-')[2]) + 1).toLocaleString('fr-FR', {
-            minimumIntegerDigits: 2
-          });
-      let currentEndDay = (parseInt(currentEnd.split('T')[0].split('-')[2]) + 1).toLocaleString('fr-FR', {
-            minimumIntegerDigits: 2
-          });
-      let currentStartDate = new Date(newEvent.start.dateTime);
-      let currentEndDate = new Date(newEvent.end.dateTime);
-      
-      
-      if(editingEvent){
-        currentStart = currentStart.split('T')[0].slice(0, 8) + currentStartDay + 'T' + currentStart.split('T')[1];
-        currentEnd = currentEnd.split('T')[0].slice(0, 8) + currentEndDay + 'T' + currentEnd.split('T')[1];
-      }
-
-      while (eventCreated < newEvent.occurrences) {
-        currentStartDate = new Date(currentStart);
-        currentEndDate = new Date(currentEnd);
-        console.log("start:", currentStartDate, " end: ", currentEndDate );
-        // Sauter samedi (6) et dimanche (0) pour les jours de semaine
-        if (value === 'every_weekdays' && (currentStartDate.getDay() === 0 || currentEndDate.getDay() === 6)) {
-          currentStart = currentStart.split('T')[0].slice(0, 8) + currentStartDay + 'T' + currentStart.split('T')[1];
-          currentEnd = currentEnd.split('T')[0].slice(0, 8) + currentEndDay + 'T' + currentEnd.split('T')[1];
-          continue;
-        }
-
-        const event = {
-          ...newEvent,
-          start: { dateTime: currentStart },
-          end: { dateTime: currentEnd },
-          recurrenceRule,
-          value: value,
-        };
-
-        if (eventCreated === 0 && editingEvent) {
-          // skip first if editing
-        } else if (eventCreated === 0) {
-          event.id = String(baseId);
-        } else {
-          event.id = String(baseId + ':' + eventCreated);
-        }
-
-        eventsToAdd.push(event);
-        eventCreated++;
-
-        // Avance d'un jour (ou d'une semaine si weekly)
-        if (value === 'weekly') {
-          currentStart.setDate(currentStart.getDate() + 7);
-          currentEnd.setDate(currentEnd.getDate() + 7);
-        } else {
-          currentStart = currentStart.split('T')[0].slice(0, 8) + currentStartDay + 'T' + currentStart.split('T')[1];
-          currentEnd = currentEnd.split('T')[0].slice(0, 8) + currentEndDay + 'T' + currentEnd.split('T')[1];
-          currentStartDay = (parseInt(currentStart.split('T')[0].split('-')[2]) + 1).toLocaleString('fr-FR', {
-            minimumIntegerDigits: 2
-          });
-          currentEndDay = (parseInt(currentEnd.split('T')[0].split('-')[2]) + 1).toLocaleString('fr-FR', {
-            minimumIntegerDigits: 2
-          });
-        }
-
-      }
-    }
-    setEvents([...events, ...eventsToAdd]);
-    setValue('none');
-    setModalVisible(false);
-    await AsyncStorage.setItem('events', JSON.stringify([...events, ...eventsToAdd]));
-  }  
+    //===================Copier un évènement===================
 
   const copyEvent = (event) =>{
     setCopiedEvent(event);
@@ -478,17 +398,12 @@ export default function TabTwoScreen() {
     console.log("Event copié!");
     setModalVisible(false);
   }
-  */
 
-  const copyEvent = (event) =>{
-    setCopiedEvent(event);
-    setCopied(true);
-    console.log("Event copié!");
-    setModalVisible(false);
-  }
+    //===================Coller un évènement===================
 
   const pasteEvent = async (event) => {
-    const notifId = await sendNotification(copiedEvent.title, copiedEvent.start);
+    const notifId = `${event.title}-${event.start.dateTime}`; 
+    await sendNotification(copiedEvent.title, copiedEvent.start);
     const copyEvent = {
       ...copiedEvent,
       id: String(Math.max(
@@ -519,24 +434,29 @@ export default function TabTwoScreen() {
     setModalVisible(false);
   }
 
-  const moveEventStart = (event) =>{
-    console.log(event);
-    cancelNotificationAsync(event.notification);
-  }
+    //===================Déplacer un évènement===================
 
-  const moveEventEnd = async (event, newStart, newEnd) => {
-    console.log(event, newStart, newEnd);
-    const notifId = await sendNotification(event.title, event.start);
-    const updatedEvents = events.map(ev =>
-      ev.id === event.id
-        ? { ...event, notification: notifId }
-        : ev
-    );
+  const moveEventEnd = async (event:any, newStart:any, newEnd:any) => {
+    const notifId = `${event.title}-${event.start.dateTime}`
+    console.log("start", event.start.dateTime);
+    console.log("new Event", event, newStart, newEnd);
+    await sendNotification(event.title, event.start);
+
+    const updatedEvents = events.map(ev => {
+      if(ev.id === event.id){
+        notifee.cancelNotification(ev.notification);
+        ev = {...event, notification: notifId};
+      }
+      console.log("new event", ev);
+      return ev;
+    });
+
     setEvents(updatedEvents);
     AsyncStorage.setItem('events', JSON.stringify(updatedEvents));
     setSelectedEvent(null);
 };
 
+    //===================Apparence d'un évènement===================
   const renderEvent = useCallback(
     (event) => (
       <ImageBackground
@@ -603,7 +523,6 @@ export default function TabTwoScreen() {
         allowDragToEdit={true}
         selectedEvent={selectedEvent}
         onDragCreateEventEnd={createEvent}
-        onDragSelectedEventStart={moveEventStart}
         onDragSelectedEventEnd={moveEventEnd}
         onPressEvent={(event)=> {setEditingEvent(true); setNewEvent(event); setModalVisible(true); console.log(events);}}
         onLongPressEvent={(event) => setSelectedEvent(event)}
@@ -649,6 +568,7 @@ export default function TabTwoScreen() {
         <Modal 
           isVisible={modalVisible} 
           onBackButtonPress={() => setModalVisible(false)} 
+          onBackdropPress={() => setModalVisible(false)}
           backdropOpacity={0.2}
           useNativeDriver
           style={{width: '100%', margin: 0}}
@@ -943,6 +863,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     padding: 10,
     borderColor: 'rgba(183, 152, 255, 1)',
+    backgroundColor: 'white',
     borderRadius: 20,
     borderWidth: 1
   },
