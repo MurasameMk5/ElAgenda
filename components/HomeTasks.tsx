@@ -6,6 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useEvents } from '@/app/eventsContext';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, {useSharedValue, useAnimatedStyle, withTiming, withRepeat, Easing, ReduceMotion} from 'react-native-reanimated';
+import { fetchAllTasks } from '@/src/services/eventService';
 
 
 export default function HomeTasks() {
@@ -22,6 +23,14 @@ export default function HomeTasks() {
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: translateX.value }],
   }));
+
+  useEffect(() => {
+    const getAllTasks = async () => {
+      const events = await fetchAllTasks();
+      console.log("Events: ", events);
+    }
+     getAllTasks();
+  }, []);
 
   useEffect(() => {
     if(enCours) 

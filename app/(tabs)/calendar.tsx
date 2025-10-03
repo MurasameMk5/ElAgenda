@@ -15,7 +15,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Platform } from 'react-native';
 import * as FileSystem from 'expo-file-system';
-import notifee, { TimestampTrigger, TriggerType, AndroidImportance } from '@notifee/react-native';
+import notifee, { TimestampTrigger, TriggerType, AndroidImportance, AndroidNotificationSetting } from '@notifee/react-native';
 
 export default function TabTwoScreen() {
   const [showStartPicker, setShowStartPicker] = useState(false);
@@ -46,6 +46,7 @@ export default function TabTwoScreen() {
     image: '',
     textColor: '#000',
     notification: '',
+    preNotification: '',
   });
   const [copiedEvent, setCopiedEvent] = useState({
     id: '',
@@ -60,6 +61,7 @@ export default function TabTwoScreen() {
     image: '',
     textColor: '#000',
     notification: '',
+    preNotification: '',
   });
   const [copied, setCopied] = useState(false);
 
@@ -72,8 +74,8 @@ export default function TabTwoScreen() {
     { label: 'Chaque semaine', value: 'weekly' },
   ]);
   const insets = useSafeAreaInsets();
+  let hasAlarm = false;
   
-
   useEffect(() => {
     if(!modalVisible){
       setNewEvent({
@@ -114,6 +116,11 @@ export default function TabTwoScreen() {
     calendarRef.current.goToDate({ date: new Date().toISOString() });
     console.log(calendarRef.current);
   }
+    const getAlarmSetting = async () => {
+      const settings = await notifee.getNotificationSettings();
+      hasAlarm = settings.android.alarm === AndroidNotificationSetting.ENABLED;
+    }
+    getAlarmSetting();
   }, [])
 /*
   useEffect(() => {
@@ -178,6 +185,7 @@ export default function TabTwoScreen() {
     const trigger: TimestampTrigger = {
       type: TriggerType.TIMESTAMP,
       timestamp: new Date(start.dateTime).getTime(),
+      alarmManager: hasAlarm,
     }
 
     
