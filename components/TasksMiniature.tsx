@@ -21,6 +21,7 @@ type props= {
 export default function TasksMiniature(props: props) {
   const [enCours, setEnCours] = useState(false);
   const scale = useSharedValue(1);
+  const isFocused = useIsFocused();
   let eventEnCours;
   
   
@@ -33,9 +34,9 @@ export default function TasksMiniature(props: props) {
   }
   
   useEffect(()=>{
-    if(useIsFocused)
+    if(isFocused)
       handleEnCours();
-  }, [useIsFocused]);
+  }, [isFocused]);
 
   useEffect(() => {
       props.onEnCours(enCours);

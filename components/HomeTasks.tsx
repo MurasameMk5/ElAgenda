@@ -20,13 +20,13 @@ export default function HomeTasks() {
   const handleEnCours = (isEnCours: boolean) => {
     setEnCours(isEnCours);
   };
-
+  const isFocused = useIsFocused();
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: translateX.value }],
   }));
 
   useEffect(() => {
-    if(useIsFocused){
+    if(isFocused){
       const getTodayEvents = async () => {
         let res = await fetchTodayEvents();
         if(res)
@@ -34,7 +34,7 @@ export default function HomeTasks() {
       }
       getTodayEvents();      
     }
-  }, [useIsFocused]);
+  }, [isFocused]);
 
   useEffect(() => {
     if(enCours) 

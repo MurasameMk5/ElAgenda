@@ -16,7 +16,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { Platform } from 'react-native';
 import * as FileSystem from 'expo-file-system';
 import notifee, { TimestampTrigger, TriggerType, AndroidImportance, AndroidNotificationSetting } from '@notifee/react-native';
-import { fetchAllEvents, insertEvent, updateEvent } from '@/src/services/eventService';
+import { fetchAllEvents, insertEvent, removeEvent, updateEvent } from '@/src/services/eventService';
 
 export default function TabTwoScreen() {
   const [showStartPicker, setShowStartPicker] = useState(false);
@@ -277,7 +277,7 @@ export default function TabTwoScreen() {
         style: 'destructive',
         onPress: async () => {
           notifee.cancelNotification(event.notification);
-          deleteEvent(event.id);
+          removeEvent(event.id);
           setModalVisible(false);
           console.log('Event deleted:', event.id);
         },
@@ -291,7 +291,7 @@ export default function TabTwoScreen() {
           );
           removedEvents.forEach((ev) => {
             notifee.cancelNotification(ev.notification);
-            deleteEvent(ev.id);
+            removeEvent(ev.id);
           });
           console.log('Removed events:', removedEvents);
           setModalVisible(false);

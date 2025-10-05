@@ -60,7 +60,7 @@ export const updateEvent = async (id, title, start, end, recurrenceRule, value, 
     .select()
 }
 
-export const deleteEvent = async (id) =>{
+export const removeEvent = async (id) =>{
     const {error} = await supabase
     .from('event')
     .delete()
