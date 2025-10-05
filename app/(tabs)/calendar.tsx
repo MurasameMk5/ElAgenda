@@ -16,6 +16,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { Platform } from 'react-native';
 import * as FileSystem from 'expo-file-system';
 import notifee, { TimestampTrigger, TriggerType, AndroidImportance, AndroidNotificationSetting } from '@notifee/react-native';
+import { fetchAllEvents, insertEvent, updateEvent } from '@/src/services/eventService';
 
 export default function TabTwoScreen() {
   const [showStartPicker, setShowStartPicker] = useState(false);
@@ -26,7 +27,7 @@ export default function TabTwoScreen() {
     const month = new Date().toLocaleString('fr-FR', {month: 'long'});
     return month.charAt(0).toUpperCase() + month.slice(1)
   });
-  const {events, setEvents} = useEvents();
+  const [events, setEvents] = useState([]);
   const [numberOfDays, setNumberOfDays] = useState(3);
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
@@ -111,6 +112,13 @@ export default function TabTwoScreen() {
     };
   }, []);
 
+  const loadEvents = async () => {
+    let res = await fetchAllEvents();
+    if(res){
+      setEvents(res);
+    }
+  }
+
   useEffect(() => {
     if (calendarRef.current) {
     calendarRef.current.goToDate({ date: new Date().toISOString() });
@@ -121,6 +129,8 @@ export default function TabTwoScreen() {
       hasAlarm = settings.android.alarm === AndroidNotificationSetting.ENABLED;
     }
     getAlarmSetting();
+
+    loadEvents();
   }, [])
 /*
   useEffect(() => {
@@ -230,8 +240,9 @@ export default function TabTwoScreen() {
       if(ev.id === event.id){
         notifee.cancelNotification(ev.notification);
         ev = {...event, value: value, notification: notifId}
+        updateEvent(ev.id, ev.title, ev.start.dateTime, ev.end.dateTime, ev.recurrenceRule, ev.value, ev.color, ev.image, ev.textColor, ev.notification, ev.preNotification);
       }
-      return ev;
+        return ev;
     }
     );
 
@@ -241,8 +252,8 @@ export default function TabTwoScreen() {
         postEvent();
       }, 0);
     }
-    setEvents(updatedEvents);
-    AsyncStorage.setItem('events', JSON.stringify(updatedEvents));
+    //setEvents(updatedEvents);
+    //AsyncStorage.setItem('events', JSON.stringify(updatedEvents));
     setEditingEvent(false);
     setModalVisible(false);
   }
@@ -266,9 +277,7 @@ export default function TabTwoScreen() {
         style: 'destructive',
         onPress: async () => {
           notifee.cancelNotification(event.notification);
-          const updatedEvents = events.filter(ev => ev.id !== event.id);
-          setEvents(updatedEvents);
-          AsyncStorage.setItem('events', JSON.stringify(updatedEvents));
+          deleteEvent(event.id);
           setModalVisible(false);
           console.log('Event deleted:', event.id);
         },
@@ -276,20 +285,15 @@ export default function TabTwoScreen() {
       {
         text: 'Inclure les suivants ',
         onPress: () => {
-          const updatedEvents = events.filter(ev => 
-            ev.id.split(':')[0] !== event.id.split(':')[0] || 
-            new Date(ev.start.dateTime.split('T')[0]) < new Date(event.start.dateTime.split('T')[0])
-          );
           const removedEvents = events.filter(ev => 
             ev.id.split(':')[0] === event.id.split(':')[0] && 
             new Date(ev.start.dateTime.split('T')[0]) >= new Date(event.start.dateTime.split('T')[0])
           );
           removedEvents.forEach((ev) => {
             notifee.cancelNotification(ev.notification);
+            deleteEvent(ev.id);
           });
           console.log('Removed events:', removedEvents);
-          setEvents(updatedEvents);
-          AsyncStorage.setItem('events', JSON.stringify(updatedEvents));
           setModalVisible(false);
         }
       }
@@ -390,12 +394,13 @@ export default function TabTwoScreen() {
     for(const event of eventsToAdd){
       event.notification = `${event.title}-${event.start.dateTime}`
       await sendNotification(event.title, event.start);
+      await insertEvent(event.id, event.title, event.start.dateTime, event.end.dateTime, event.recurrenceRule, event.value, event.color, event.image, event.textColor, event.notification, event.preNotification);
       console.log("new event" , event);
     }
-    setEvents([...events, ...eventsToAdd]);
     setValue('none');
     setModalVisible(false);
-    await AsyncStorage.setItem('events', JSON.stringify([...events, ...eventsToAdd]));
+    loadEvents();
+
   }  
 
     //===================Copier un évènement===================

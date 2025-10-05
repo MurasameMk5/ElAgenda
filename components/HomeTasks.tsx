@@ -6,16 +6,17 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useEvents } from '@/app/eventsContext';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, {useSharedValue, useAnimatedStyle, withTiming, withRepeat, Easing, ReduceMotion} from 'react-native-reanimated';
-import { fetchAllTasks } from '@/src/services/eventService';
+import {fetchActualEvent, fetchTodayEvents } from '@/src/services/eventService';
+import { useIsFocused } from '@react-navigation/native';
 
 
 export default function HomeTasks() {
-  const {events} = useEvents();
+  //const {events} = useEvents();
   const [enCours, setEnCours] = useState(false)
   const varuoState = ["Still", "Idle1", "Idle2", "Idle3"]
   const [varuo, setVaruo] = useState(varuoState[0]);
   const translateX = useSharedValue(0);
-  
+  const [events, setEvents] = useState([]);
   const handleEnCours = (isEnCours: boolean) => {
     setEnCours(isEnCours);
   };
@@ -25,12 +26,15 @@ export default function HomeTasks() {
   }));
 
   useEffect(() => {
-    const getAllTasks = async () => {
-      const events = await fetchAllTasks();
-      console.log("Events: ", events);
+    if(useIsFocused){
+      const getTodayEvents = async () => {
+        let res = await fetchTodayEvents();
+        if(res)
+          setEvents(res);
+      }
+      getTodayEvents();      
     }
-     getAllTasks();
-  }, []);
+  }, [useIsFocused]);
 
   useEffect(() => {
     if(enCours) 
@@ -127,17 +131,13 @@ export default function HomeTasks() {
         }
       </View>
       <ScrollView contentContainerStyle={{paddingBottom: 250}}>
-        {events
-          .filter(event =>
-            event.start &&
-            event.start.dateTime.split('T')[0] === new Date().toLocaleDateString("en-CA")
-          ).sort((a, b) =>
-            new Date(a.start.dateTime).getTime() - new Date(b.start.dateTime).getTime())
+        {events && events
           .map((event) => (
           <TasksMiniature
             key={event.id}
-            start={event.start.dateTime.split('T')[1].slice(0, 5)}
-            end={event.end.dateTime.split('T')[1].slice(0, 5)}
+            id= {event.id}
+            start={event.start.slice(0,5)}
+            end={event.end.slice(0,5)}
             title={event.title}
             color={event.color}
             image={event.image}

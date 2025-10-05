@@ -3,9 +3,12 @@ import { useEffect, useState } from 'react';
 import { Text, View, StyleSheet, ImageBackground } from 'react-native';
 import * as Notifications from 'expo-notifications';
 import Animated, {useSharedValue, useAnimatedStyle, withTiming, withRepeat, Easing, ReduceMotion} from 'react-native-reanimated';
+import { useIsFocused } from '@react-navigation/native';
+import { fetchActualEvent } from '@/src/services/eventService';
 
 
 type props= {
+  id: string;
   start: string;
   end: string;
   title: string;
@@ -16,25 +19,23 @@ type props= {
 }
 
 export default function TasksMiniature(props: props) {
-  const [time, setTime] = useState('');
   const [enCours, setEnCours] = useState(false);
   const scale = useSharedValue(1);
-
+  let eventEnCours;
   
   
-  const handleEnCours = () =>{
-    if(props.start < new Date().toLocaleTimeString('fr-Fr').slice(0, 5) && new Date().toLocaleTimeString().slice(0, 5) < props.end){
-      setEnCours(true);
-      return;
-    } else
-      setEnCours(false);
+  const handleEnCours = async () =>{
+      eventEnCours = await fetchActualEvent();
+      if(eventEnCours?.length > 0 && eventEnCours[0].id === props.id)
+        setEnCours(true);
+      else
+        setEnCours(false);
   }
   
   useEffect(()=>{
-    setTime(new Date().toISOString());
-    console.log("aujourd'hui: ", new Date().toLocaleTimeString(), 'start: ', props.start, 'end: ', props.end);
-    handleEnCours();
-  }, [props.start, props.end]);
+    if(useIsFocused)
+      handleEnCours();
+  }, [useIsFocused]);
 
   useEffect(() => {
       props.onEnCours(enCours);
