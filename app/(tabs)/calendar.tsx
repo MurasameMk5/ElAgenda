@@ -1,10 +1,8 @@
 import { Alert, StyleSheet, ImageBackground, TouchableOpacity, TextInput, Pressable, Text, View } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { CalendarBody, CalendarContainer, CalendarHeader, HeaderItemProps, parseDateTime } from '@howljs/calendar-kit';
 import { useEffect, useState, useCallback, useRef } from 'react';
 import ColorPicker, { HueSlider, Panel1, Preview } from 'reanimated-color-picker';
 import { GestureHandlerRootView} from 'react-native-gesture-handler';
-import { useEvents } from '../eventsContext';
 import DropDownPicker from 'react-native-dropdown-picker';
 import { Ionicons } from '@expo/vector-icons';
 import * as DocumentPicker from 'expo-document-picker';
@@ -16,9 +14,16 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { Platform } from 'react-native';
 import * as FileSystem from 'expo-file-system';
 import notifee, { TimestampTrigger, TriggerType, AndroidImportance, AndroidNotificationSetting } from '@notifee/react-native';
-import { fetchAllEvents, insertEvent, removeEvent, updateEvent } from '@/src/services/eventService';
+import {fetchAllEvents, fetchAllLinkedEvents, fetchEventById, insertEvent, removeEvent, updateEvent } from '@/src/services/eventService';
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+import timezone from 'dayjs/plugin/timezone';
+import { useUser } from '@/components/UserContext';
 
 export default function TabTwoScreen() {
+  dayjs.extend(utc);
+  dayjs.extend(timezone);
+  const {user, setUser} = useUser();
   const [showStartPicker, setShowStartPicker] = useState(false);
   const [showEndPicker, setShowEndPicker] = useState(false);  
   const calendarRef = useRef(null);
@@ -49,21 +54,7 @@ export default function TabTwoScreen() {
     notification: '',
     preNotification: '',
   });
-  const [copiedEvent, setCopiedEvent] = useState({
-    id: '',
-    title: '',
-    start: { dateTime: '' },
-    end: { dateTime: '' },
-    duree: 0,
-    recurrenceRule: '',
-    value: '',
-    occurrences: 1,
-    color: '#fff',
-    image: '',
-    textColor: '#000',
-    notification: '',
-    preNotification: '',
-  });
+  const [copiedEvent, setCopiedEvent] = useState(null);
   const [copied, setCopied] = useState(false);
 
   const [open, setOpen] = useState(false);
@@ -91,6 +82,7 @@ export default function TabTwoScreen() {
         image: '',
         textColor: '#000',
         notification: '',
+        preNotification: '',
       });
       setEditingEvent(false);
     }
@@ -113,7 +105,7 @@ export default function TabTwoScreen() {
   }, []);
 
   const loadEvents = async () => {
-    let res = await fetchAllEvents();
+    let res = await fetchAllEvents(user.id);
     if(res){
       setEvents(res);
     }
@@ -225,26 +217,21 @@ export default function TabTwoScreen() {
     });
     setCopiedEvent({
       ...copiedEvent,
-      duree: Math.abs(new Date(copiedEvent.end.dateTime) - new Date(copiedEvent.start.dateTime)),
-      start: event.start,
+      date: event.start.dateTime.split('T')[0],
+      start: event.start.dateTime,
     });
     setModalVisible(true)
   }
   //===================Modifier un évènement===================
 
-  const ModifyEvent = async (event: { id: string; start: any; end: any; title: string; color: string; recurrenceRule: string}) => {
+  const ModifyEvent = async (event: { id: string; start: any; end: any; title: string; color: string; recurrenceRule: string; notification: string}) => {
     console.log("new events:", event);
     const notifId = `${event.title}-${event.start.dateTime}`;
     await sendNotification(event.title, event.start);
-    const updatedEvents = events.map((ev:any) =>{
-      if(ev.id === event.id){
-        notifee.cancelNotification(ev.notification);
-        ev = {...event, value: value, notification: notifId}
-        updateEvent(ev.id, ev.title, ev.start.dateTime, ev.end.dateTime, ev.recurrenceRule, ev.value, ev.color, ev.image, ev.textColor, ev.notification, ev.preNotification);
-      }
-        return ev;
-    }
-    );
+    notifee.cancelNotification(event.notification);
+    let ev = {...event, value: value, notification: notifId}
+    updateEvent(ev.id, ev.title, ev.start.dateTime, ev.end.dateTime, ev.recurrenceRule, ev.value, ev.color, ev.image, ev.textColor, ev.notification, ev.preNotification);
+    console.log("Event updated:", ev);
 
     if(value != 'none'){
       setNewEvent(event);
@@ -254,6 +241,7 @@ export default function TabTwoScreen() {
     }
     //setEvents(updatedEvents);
     //AsyncStorage.setItem('events', JSON.stringify(updatedEvents));
+    loadEvents();
     setEditingEvent(false);
     setModalVisible(false);
   }
@@ -279,22 +267,21 @@ export default function TabTwoScreen() {
           notifee.cancelNotification(event.notification);
           removeEvent(event.id);
           setModalVisible(false);
+          loadEvents();
           console.log('Event deleted:', event.id);
         },
       },
       {
         text: 'Inclure les suivants ',
-        onPress: () => {
-          const removedEvents = events.filter(ev => 
-            ev.id.split(':')[0] === event.id.split(':')[0] && 
-            new Date(ev.start.dateTime.split('T')[0]) >= new Date(event.start.dateTime.split('T')[0])
-          );
-          removedEvents.forEach((ev) => {
-            notifee.cancelNotification(ev.notification);
-            removeEvent(ev.id);
-          });
-          console.log('Removed events:', removedEvents);
+        onPress: async () => {
+          let removableEvents = await fetchAllLinkedEvents(event.id);
+          for(const ev of removableEvents){
+            await notifee.cancelNotification(ev.notification);
+            await removeEvent(ev.id);
+          };
+          console.log('Removed events:', removableEvents);
           setModalVisible(false);
+          loadEvents();
         }
       }
     ],
@@ -394,7 +381,9 @@ export default function TabTwoScreen() {
     for(const event of eventsToAdd){
       event.notification = `${event.title}-${event.start.dateTime}`
       await sendNotification(event.title, event.start);
-      await insertEvent(event.id, event.title, event.start.dateTime, event.end.dateTime, event.recurrenceRule, event.value, event.color, event.image, event.textColor, event.notification, event.preNotification);
+      let duration = new Date(new Date(event.end.dateTime).getTime() - new Date(event.start.dateTime).getTime()).toISOString().slice(11, 16);
+      console.log("duration", duration);
+      await insertEvent(event.id, event.title, event.start.dateTime, event.end.dateTime, duration, event.recurrenceRule, event.value, event.color, event.image, event.textColor, event.notification, event.preNotification, user.id);
       console.log("new event" , event);
     }
     setValue('none');
@@ -405,67 +394,56 @@ export default function TabTwoScreen() {
 
     //===================Copier un évènement===================
 
-  const copyEvent = (event) =>{
-    setCopiedEvent(event);
+  const copyEvent = async (event) =>{
+    let fetchedEvent = await fetchEventById(event.id);
+    if(fetchedEvent)
+      setCopiedEvent(fetchedEvent[0]);
     setCopied(true);
-    console.log("Event copié!");
     setModalVisible(false);
   }
 
     //===================Coller un évènement===================
 
   const pasteEvent = async (event) => {
+    
     const notifId = `${event.title}-${event.start.dateTime}`; 
     await sendNotification(copiedEvent.title, copiedEvent.start);
-    const copyEvent = {
-      ...copiedEvent,
-      id: String(Math.max(
+    let newId = String(Math.max(
         ...events.map(ev => parseInt(ev.id.split(':')[0], 10) || 0)
-      ) + 1),
-      end: { dateTime: new Date(new Date(copiedEvent.start.dateTime).getTime() + copiedEvent.duree).toISOString()},
-      notification: notifId,
-    }
+      ) + 1);
 
-    console.log(copyEvent);
-    setEvents([...events, copyEvent]);
-    AsyncStorage.setItem('events', JSON.stringify([...events, copyEvent]));
-    setCopiedEvent({
-      id: '',
-      title: '',
-      start: { dateTime: '' },
-      end: { dateTime: '' },
-      duree: 0,
-      recurrenceRule: '',
-      value: '',
-      occurrences: 1,
-      color: '#fff',
-      image: '',
-      textColor: '#000',
-      notification: '',
-    })
+    let newEnd = dayjs(copiedEvent.start)
+        .add(Number(copiedEvent.duration.split(':')[0]), 'hour')
+        .add(Number(copiedEvent.duration.split(':')[1]), 'minute')
+        .tz('Europe/Paris', true)
+        .format('YYYY-MM-DDTHH:mm:ss+02:00');
+
+    console.log("new end: ",newEnd);
+
+    console.log("copied Event: ", copiedEvent);
+    await insertEvent(newId, copiedEvent.title, copiedEvent.start, newEnd, copiedEvent.duration, copiedEvent.recurrenceRule, copiedEvent.value, copiedEvent.color, copiedEvent.image, copiedEvent.textColor, notifId, copiedEvent.preNotification);
     setCopied(false);
     setModalVisible(false);
+    loadEvents();
   }
 
     //===================Déplacer un évènement===================
 
-  const moveEventEnd = async (event:any, newStart:any, newEnd:any) => {
+  const moveEventEnd = async (event:any) => {
+    /*
+    let oldEvent = await fetchEventById(event.id);
+    console.log(oldEvent[0].start === event.start.dateTime.split('T')[1]);
+    if (event.start.dateTime.split('T')[1] === oldEvent[0].start) {
+      setSelectedEvent(null);
+      return;
+    }*/
     const notifId = `${event.title}-${event.start.dateTime}`
-    console.log("start", event.start.dateTime);
-    console.log("new Event", event, newStart, newEnd);
     await sendNotification(event.title, event.start);
 
-    const updatedEvents = events.map(ev => {
-      if(ev.id === event.id){
-        notifee.cancelNotification(ev.notification);
-        ev = {...event, notification: notifId};
-      }
-      console.log("new event", ev);
-      return ev;
-    });
-
-    setEvents(updatedEvents);
-    AsyncStorage.setItem('events', JSON.stringify(updatedEvents));
+    notifee.cancelNotification(event.notification);
+    let ev = {...event, notification: notifId};
+    await updateEvent(ev.id, ev.title, event.start.dateTime, event.end.dateTime, ev.recurrenceRule, ev.value, ev.color, ev.image, ev.textColor, ev.notification, ev.preNotification);
+    loadEvents();
     setSelectedEvent(null);
 };
 

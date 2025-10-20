@@ -1,10 +1,11 @@
 import React, { use, useEffect } from 'react';
 import { StyleSheet, Image, Pressable, Text, View } from 'react-native';
 import Animated, {useSharedValue, useAnimatedStyle, withTiming, Easing, ReduceMotion} from 'react-native-reanimated';
+import { useUser } from './UserContext';
 export default function CharDialogue() {
     const [phrase, setPhrase] = React.useState<string>('');
     const [chara, setChara] = React.useState();
-
+    const {user, setUser} = useUser()
     //Images pour les personnages
     const characterImagesAless = [
         require('@/assets/images/Akuto.png'),
@@ -47,14 +48,14 @@ export default function CharDialogue() {
         require('@/assets/images/Zeke-min.png'),
     ];
     const listePhrases = [
-        "Eh, vas travailler, je n'ai pas besoin d'un bon à rien.",
-        "Tu prépares tes tâches ? C'est bien continue comme ça.",
-        "Observer c'est bien, mais travailler c'est mieux !",
-        "On n'est pas là pour révasser, au boulot !",
-        "Si tu cours, tu gagne un, mais si tu avances, tu gagnes deux.",
-        "Ce n'est pas en contemplant les fleurs que tu vas finir comme les grands artistes.",
-        "C'est avec un pas par jour que l'on avance vers ses objectifs!",
-        "Tu as déjà fini ? Impressionnant...",
+        "eh, vas travailler, je n'ai pas besoin d'un bon à rien.",
+        "tu prépares tes tâches ? C'est bien continue comme ça.",
+        "observer c'est bien, mais travailler c'est mieux !",
+        "on n'est pas là pour révasser, au boulot !",
+        "si tu cours, tu gagne un, mais si tu avances, tu gagnes deux.",
+        "ce n'est pas en contemplant les fleurs que tu vas finir comme les grands artistes.",
+        "c'est avec un pas par jour que l'on avance vers ses objectifs!",
+        "tu as déjà fini ? Impressionnant...",
     ];  
     const [dialogueVisible, setDialogueVisible] = React.useState(false);
 
@@ -63,8 +64,8 @@ export default function CharDialogue() {
 
     useEffect(() => {
         setPhrase(listePhrases[Math.floor(Math.random() * listePhrases.length)]);
-        //setChara(characterImagesAless[Math.floor(Math.random() * characterImagesAless.length)]);
-        setChara(characterImagesHerci[Math.floor(Math.random() * characterImagesHerci.length)]);
+        setChara(characterImagesAless[Math.floor(Math.random() * characterImagesAless.length)]);
+        //setChara(characterImagesHerci[Math.floor(Math.random() * characterImagesHerci.length)]);
         setTimeout(() => {
             dialogueStartAnimation();
         }, 500);
@@ -101,7 +102,7 @@ export default function CharDialogue() {
                 />
                 <View style={styles.textContainer}>
                     <Text style={styles.dialogueText}>
-                        {phrase}
+                        {user.name? user.name + ", " + phrase : phrase}
                     </Text>
                 </View>
             </Animated.View>

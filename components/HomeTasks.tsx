@@ -8,10 +8,12 @@ import { Ionicons } from '@expo/vector-icons';
 import Animated, {useSharedValue, useAnimatedStyle, withTiming, withRepeat, Easing, ReduceMotion} from 'react-native-reanimated';
 import {fetchActualEvent, fetchTodayEvents } from '@/src/services/eventService';
 import { useIsFocused } from '@react-navigation/native';
+import { useUser } from './UserContext';
 
 
 export default function HomeTasks() {
   //const {events} = useEvents();
+  const {user, setUser} = useUser();
   const [enCours, setEnCours] = useState(false)
   const varuoState = ["Still", "Idle1", "Idle2", "Idle3"]
   const [varuo, setVaruo] = useState(varuoState[0]);
@@ -28,13 +30,13 @@ export default function HomeTasks() {
   useEffect(() => {
     if(isFocused){
       const getTodayEvents = async () => {
-        let res = await fetchTodayEvents();
+        let res = await fetchTodayEvents(user.id);
         if(res)
           setEvents(res);
       }
       getTodayEvents();      
     }
-  }, [isFocused]);
+  }, [isFocused, user.id]);
 
   useEffect(() => {
     if(enCours) 

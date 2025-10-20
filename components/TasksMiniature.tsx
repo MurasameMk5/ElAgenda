@@ -5,6 +5,7 @@ import * as Notifications from 'expo-notifications';
 import Animated, {useSharedValue, useAnimatedStyle, withTiming, withRepeat, Easing, ReduceMotion} from 'react-native-reanimated';
 import { useIsFocused } from '@react-navigation/native';
 import { fetchActualEvent } from '@/src/services/eventService';
+import { useUser } from './UserContext';
 
 
 type props= {
@@ -19,6 +20,7 @@ type props= {
 }
 
 export default function TasksMiniature(props: props) {
+  const {user, setUser} = useUser();
   const [enCours, setEnCours] = useState(false);
   const scale = useSharedValue(1);
   const isFocused = useIsFocused();
@@ -26,7 +28,7 @@ export default function TasksMiniature(props: props) {
   
   
   const handleEnCours = async () =>{
-      eventEnCours = await fetchActualEvent();
+      eventEnCours = await fetchActualEvent(user.id);
       if(eventEnCours?.length > 0 && eventEnCours[0].id === props.id)
         setEnCours(true);
       else

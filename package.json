@@ -22,6 +22,7 @@
     "@rneui/themed": "^4.0.0-rc.8",
     "@supabase/supabase-js": "^2.58.0",
     "date-fns": "^4.1.0",
+    "dayjs": "^1.11.18",
     "expo": "~53.0.12",
     "expo-constants": "~17.1.7",
     "expo-device": "~7.1.4",
