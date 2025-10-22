@@ -2,9 +2,10 @@ import AsyncStorage from '@react-native-async-storage/async-storage'
 import { createClient } from '@supabase/supabase-js'
 
 const supabaseUrl = "https://mffygzfcvbuyorjsmvov.supabase.co"
-const supabasePublishableKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mZnlnemZjdmJ1eW9yanNtdm92Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkxNzAwMzUsImV4cCI6MjA3NDc0NjAzNX0.pVIef3oGL63Zs2jqvvUyaTpwjU0d7NePjSfE7UnueM0"
+const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mZnlnemZjdmJ1eW9yanNtdm92Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkxNzAwMzUsImV4cCI6MjA3NDc0NjAzNX0.pVIef3oGL63Zs2jqvvUyaTpwjU0d7NePjSfE7UnueM0"
+export const powersyncUrl = "https://68f796946fd1bdce44c78284.powersync.journeyapps.com"
 
-export const supabase = createClient(supabaseUrl, supabasePublishableKey, {  
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {  
     auth: {    
         storage: AsyncStorage,    
         autoRefreshToken: true,    
@@ -12,3 +13,4 @@ export const supabase = createClient(supabaseUrl, supabasePublishableKey, {
         detectSessionInUrl: false,  
     },
 })
+

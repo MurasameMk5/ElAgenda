@@ -1,4 +1,4 @@
-import React, { use, useEffect, useState } from 'react';
+import React, { use, useEffect, useRef, useState } from 'react';
 import { StyleSheet, ScrollView, Text, View } from 'react-native';
 import {Image} from 'expo-image';
 import TasksMiniature from './TasksMiniature';
@@ -19,10 +19,14 @@ export default function HomeTasks() {
   const [varuo, setVaruo] = useState(varuoState[0]);
   const translateX = useSharedValue(0);
   const [events, setEvents] = useState([]);
+  const isFocused = useIsFocused();
+  const stillTimeoutRef = useRef(null);
+  
   const handleEnCours = (isEnCours: boolean) => {
     setEnCours(isEnCours);
   };
-  const isFocused = useIsFocused();
+
+
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: translateX.value }],
   }));
@@ -46,27 +50,47 @@ export default function HomeTasks() {
   }, [enCours]);
 
   useEffect(() => {
-    let stillTimeoutId;
-    if(varuo === "Idle1") {
-      setTimeout(() => {
-        setVaruo('Still');
-      }, 8370);
-    } else if(varuo === "Idle2") {
-      setTimeout(() => {
-        setVaruo('Still');
-      }, 4200);
-    } else if(varuo === "Idle3") {
-      setTimeout(() => {
-        setVaruo('Still');
-      }, 8370);
-    } else if(varuo === "Still") {
-      stillTimeoutId = setTimeout(() => {
-        setVaruo(varuoState[Math.floor(Math.random() * varuoState.length)]);
-      }, 4000);
-    } else if(enCours)
-        clearTimeout(stillTimeoutId);
-    console.log(enCours)
-  }, [varuo]);
+    // Early exit if enCours is true
+    if (enCours) {
+      if (stillTimeoutRef.current) {
+        clearTimeout(stillTimeoutRef.current);
+        stillTimeoutRef.current = null;
+      }
+      return;
+    }
+
+    // Clear any existing timeout
+    if (stillTimeoutRef.current) {
+      clearTimeout(stillTimeoutRef.current);
+      stillTimeoutRef.current = null;
+    }
+
+    // Duration mapping for cleaner code
+    const durations = {
+      'Idle1': 8370,
+      'Idle2': 4200,
+      'Idle3': 8370,
+      'Still': 4000
+    };
+
+    if (durations[varuo]) {
+      stillTimeoutRef.current = setTimeout(() => {
+        if (varuo === 'Still') {
+          setVaruo(varuoState[Math.floor(Math.random() * varuoState.length)]);
+        } else {
+          setVaruo('Still');
+        }
+      }, durations[varuo]);
+    }
+
+    // Cleanup function
+    return () => {
+      if (stillTimeoutRef.current) {
+        clearTimeout(stillTimeoutRef.current);
+        stillTimeoutRef.current = null;
+      }
+    };
+  }, [varuo, enCours, varuoState]);
 
 
   return (

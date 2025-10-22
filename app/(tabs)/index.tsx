@@ -2,7 +2,7 @@ import { StyleSheet, TouchableOpacity, Alert, Pressable, View, StatusBar, TextIn
 import HomeTasks from '@/components/HomeTasks';
 import {Image} from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import * as DocumentPicker from 'expo-document-picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -13,6 +13,7 @@ import Modal from 'react-native-modal';
 import LoginPage from '@/components/LoginPage';
 import { useUser } from '@/components/UserContext';
 import { signOutUser, updateUserProfile } from '@/src/services/userService';
+import Animated, {useSharedValue, useAnimatedStyle, withTiming, withRepeat, Easing, ReduceMotion} from 'react-native-reanimated';
 
 export default function TabOneScreen() {
   const {user, setUser} = useUser();
@@ -23,7 +24,13 @@ export default function TabOneScreen() {
   const [modalVisible, setModalVisible] = useState(false);
   const [logoutPopupVisible, setLogoutPopupVisible] = useState(false);
   const [loggedIn, setLoggedIn] = useState(false);  
-
+  const logoutX = useSharedValue(0);
+  const logoutY = useSharedValue(0);
+  const brushX = useSharedValue(0);
+  const brushY = useSharedValue(0);
+  const trashX = useSharedValue(0);
+  const trashY = useSharedValue(0);
+  const hidePopupTimeout = useRef(null);
   const handleLogin = useCallback(() => {
     setLoggedIn(true);
     setModalVisible(false);
@@ -70,6 +77,43 @@ export default function TabOneScreen() {
       }, 3000);
     }
   }, [paramVisible])
+
+  useEffect(() => {
+    if (logoutPopupVisible) {
+      logoutX.value = withTiming(-10, { duration: 300 });
+      logoutY.value = withTiming(-50, { duration: 300 });
+
+      // Trash : diagonale haut droite
+      trashX.value = withTiming(50, { duration: 300 });
+      trashY.value = withTiming(-40, { duration: 300 }); 
+      
+      // Brush : vers la droite
+      brushX.value = withTiming(70, { duration: 300 });
+      brushY.value = withTiming(20, { duration: 300 });
+      
+      hidePopupTimeout.current = setTimeout(()=>{
+        setLogoutPopupVisible(false);
+      }, 3000);
+    } else {
+      if (hidePopupTimeout.current) {
+        clearTimeout(hidePopupTimeout.current);
+      }
+
+      logoutX.value = withTiming(0, { duration: 300 });
+      logoutY.value = withTiming(0, { duration: 300 });
+
+      brushX.value = withTiming(0, { duration: 300 });
+      brushY.value = withTiming(0, { duration: 300 });
+
+      trashX.value = withTiming(0, { duration: 300 });
+      trashY.value = withTiming(0, { duration: 300 });
+    }
+    return () => {
+    if (hidePopupTimeout.current) {
+      clearTimeout(hidePopupTimeout.current);
+    }
+  };
+  }, [logoutPopupVisible]);
 
   const loginButton = () => {
     if(!user.id){
@@ -123,6 +167,7 @@ export default function TabOneScreen() {
         });
         await AsyncStorage.setItem('background', newLocation);
         setBackground(newLocation);
+        await updateUserProfile(user.id, {background_url: newLocation});
       }
     } catch (error) {
       Alert.alert("Error lors de la récupération de l'image");
@@ -135,6 +180,7 @@ export default function TabOneScreen() {
         await FileSystem.deleteAsync(background);
       await AsyncStorage.removeItem('background');
       setBackground('');
+      await updateUserProfile(user.id, {background_url: background});
     } catch(error){
       Alert.alert("Impossible de supprimer l'image");
     }
@@ -151,6 +197,18 @@ export default function TabOneScreen() {
       Alert.alert("Impossible de supprimer l'image");
     }
   }
+
+  const logoutStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: logoutX.value }, { translateY: logoutY.value }],
+  }));
+
+  const brushStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: brushX.value }, { translateY: brushY.value }],
+  }));
+
+  const trashStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: trashX.value }, { translateY: trashY.value }],
+  }));
 
 return (
   <>
@@ -177,40 +235,45 @@ return (
         style={styles.image}
       />
     </Pressable>
-    <Pressable onPress={loginButton} style={{ position: 'absolute', top: insets.top + 10, right: 20, zIndex: 20 }}>
+    <Pressable onPress={loginButton} style={{ position: 'absolute', bottom: 20, left: 20, zIndex: 20, backgroundColor: 'white', borderRadius: 50 }}>
         {user.id? (
           userImage && userImage !== '' ? (
             <Image
           source={{ uri: userImage }}
-          style={{ width: 40, height: 40, borderRadius: 25, resizeMode: 'cover', borderColor: 'rgba(183, 152, 255, 1', borderWidth: 1 }}
+          style={{ width: 60, height: 60, borderRadius: 50, resizeMode: 'cover', borderColor: 'rgba(183, 152, 255, 1', borderWidth: 1 }}
           
           />
           ):
-          (<View style={{backgroundColor: 'rgba(183, 152, 255, 0.5)', borderColor: 'orange', borderWidth: 1, width: 40, height: 40, borderRadius: 25,alignItems: 'center', justifyContent: 'center'}}>
+          (<View style={{backgroundColor: 'rgba(183, 152, 255, 0.5)', borderColor: 'orange', borderWidth: 1, width: 60, height: 60, borderRadius: 50,alignItems: 'center', justifyContent: 'center'}}>
             <Text style={{fontSize: 25, color: 'orange'}}> {user.name.charAt(0)} </Text>
           </View>
           )
         ):
         (
-          <Ionicons name='person-circle-outline' size={40} color={'white'} />
+          <Ionicons name='person-circle-outline' size={60} color={'rgba(183, 152, 255, 1)'} />
         )
         }
     </Pressable>
-    {logoutPopupVisible && (
-      <TouchableOpacity onPress={logout} style={{...styles.logoutPopup, top: insets.top, right: 73,backgroundColor: 'rgba(255, 154, 171, 0.81)'}}>
-        <Ionicons name='log-out-outline' size={20} color={'white'} />
-      </TouchableOpacity>
-    )}
-    {logoutPopupVisible && (
-      <TouchableOpacity onPress={changeUserImage} style={{...styles.logoutPopup, top: insets.top +50, right: 60, backgroundColor: 'rgba(159, 255, 154, 0.81)'}}>
-        <Ionicons name='brush-outline' size={20} color={'rgba(183, 152, 255, 1'} />
-      </TouchableOpacity>
-    )}
-    {logoutPopupVisible && userImage !== '' && (
-      <TouchableOpacity onPress={deleteUserImage} style={{...styles.logoutPopup, top: insets.top +65, right: 10,}}>
-        <Ionicons name='trash' size={20} color={'rgba(183, 152, 255, 1'} />
-      </TouchableOpacity>
-    )}
+    {
+      //------------------logout Popup Buttons-------------------
+    }
+      <Animated.View style={[{...styles.logoutPopup, bottom: 40, left: 25, zIndex: 10, backgroundColor: 'rgba(255, 154, 171, 0.81)' }, logoutStyle]}>
+        <TouchableOpacity onPress={logout}>
+          <Ionicons name='log-out-outline' size={25} color={'white'} />
+        </TouchableOpacity>
+      </Animated.View>
+    
+      <Animated.View style={[{...styles.logoutPopup, bottom: 40, left: 25, zIndex: 10, backgroundColor: 'rgba(159, 255, 154, 0.81)'}, brushStyle]}>
+        <TouchableOpacity onPress={changeUserImage}>
+          <Ionicons name='brush-outline' size={25} color={'rgba(183, 152, 255, 1'} />
+        </TouchableOpacity>
+      </Animated.View>
+      
+      <Animated.View style={[{...styles.logoutPopup, bottom: 40, left: 25, zIndex: 10, backgroundColor: 'rgba(238, 237, 231, 0.9)'}, trashStyle]}>
+        <TouchableOpacity onPress={deleteUserImage}>
+          <Ionicons name='trash' size={25} color={'rgba(183, 152, 255, 1'} />
+        </TouchableOpacity>
+      </Animated.View>
     <HomeTasks />
     <CharDialogue />
   </SafeAreaView>
@@ -345,7 +408,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     backgroundColor: 'rgba(255, 255, 255, 0.7)',
     padding: 5,
-    borderRadius: 15,
+    borderRadius: 50,
     alignContent: 'center',
     justifyContent: 'center',
   },

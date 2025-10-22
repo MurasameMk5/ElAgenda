@@ -63,8 +63,10 @@ export default function CharDialogue() {
     const translateY = useSharedValue(30);
 
     useEffect(() => {
-        setPhrase(listePhrases[Math.floor(Math.random() * listePhrases.length)]);
-        setChara(characterImagesAless[Math.floor(Math.random() * characterImagesAless.length)]);
+        setTimeout(() => {
+            setPhrase(listePhrases[Math.floor(Math.random() * listePhrases.length)]);
+            setChara(characterImagesAless[Math.floor(Math.random() * characterImagesAless.length)]);
+        }, 100)
         //setChara(characterImagesHerci[Math.floor(Math.random() * characterImagesHerci.length)]);
         setTimeout(() => {
             dialogueStartAnimation();
@@ -94,7 +96,7 @@ export default function CharDialogue() {
     }
 
   return dialogueVisible ? (
-        <Pressable style={{ height: 150, width: '90%' }} onPress={() => dialogueCloseAnimation()}>
+        <Pressable style={{ height: 150, width: '90%', zIndex: 25 }} onPress={() => dialogueCloseAnimation()}>
             <Animated.View style={[{ flex: 1, flexDirection: 'row', marginTop: 20 }, animatedStyle]}>
                 <Image
                     source= {chara}
