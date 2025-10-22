@@ -1,151 +1,103 @@
-import { getPowerSync } from '@/components/PowerSyncProvider'
-import dayjs from 'dayjs'
-import utc from 'dayjs/plugin/utc'
-import timezone from 'dayjs/plugin/timezone'
+import { supabase } from "../lib/supabase";
+import dayjs from "dayjs";
+import utc from 'dayjs/plugin/utc';
+import timezone from 'dayjs/plugin/timezone';
+import { powersync } from "../lib/powersync/system";
 
-dayjs.extend(utc)
-dayjs.extend(timezone)
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 // ================== Pour le calendrier ==================
-
-export const fetchAllEvents = async (userId: string) => {
-  const powerSync = getPowerSync()
-  const result = await powerSync.getAll(
-    'SELECT * FROM events WHERE user_id = ?',
-    [userId]
-  )
-  
-  // Transformation comme avant
-  return result.map((ev: any) => ({
-    ...ev,
-    start: { dateTime: ev.date + 'T' + ev.start, timeZone: 'local' },
-    end: { dateTime: ev.date + 'T' + ev.end, timeZone: 'local' }
-  }))
+export const fetchAllEvents = async (userId: string) =>{
+    let { data: event, error } = await supabase
+    .from('events')
+    .select('*')
+    .eq('user_id', userId)
+    if(event){
+        return event.map((ev) => ({
+            ...ev,
+            start: {dateTime: ev.date + 'T' + ev.start, timeZone: 'local'},
+            end: {dateTime: ev.date + 'T' + ev.end, timeZone: 'local'}
+        }))
+    }
 }
 
-export const fetchEventById = async (id: string) => {
-  const powerSync = getPowerSync()
-  return await powerSync.getAll(
-    'SELECT * FROM events WHERE id = ?',
-    [id]
-  )
+export const fetchEventById = async (id: string) =>{
+    let { data: event, error } = await supabase
+    .from('events')
+    .select('*')
+    .eq('id', id)
+    return event;
 }
 
-export const fetchAllLinkedEvents = async (id: string) => {
-  const powerSync = getPowerSync()
-  const baseId = id.split(':')[0]
-  return await powerSync.getAll(
-    'SELECT * FROM events WHERE id LIKE ?',
-    [baseId + ':%']
-  )
+export const fetchAllLinkedEvents = async (id: string) =>{
+    const baseId = id.split(':')[0];
+    let { data: event, error } = await supabase
+    .from('events')
+    .select('*')
+    .like('id', baseId + ':%')
+    return event;
 }
 
 // ================== Pour la page d'accueil ==================
-
-export const fetchTodayEvents = async (userId: string) => {
-  const powerSync = getPowerSync()
-  const today = new Date().toLocaleDateString("en-CA")
-  return await powerSync.getAll(
-    'SELECT * FROM events WHERE date = ? AND user_id = ? ORDER BY start ASC',
-    [today, userId]
-  )
+export const fetchTodayEvents = async (userId: string) =>{
+    /*
+    let event = powersync.getAll(
+        "SELECT * FROM events WHERE date = ? and user_id = ? order by start ASC", 
+    [new Date().toLocaleDateString("en-CA"), userId])
+    */
+    let { data: event, error } = await supabase
+        .from('events')
+        .select('*')
+        .eq('date', new Date().toLocaleDateString("en-CA"))
+        .eq('user_id', userId)
+        .order('start', { ascending: true })
+    
+        return event;
 }
 
-export const fetchActualEvent = async (userId: string) => {
-  const powerSync = getPowerSync()
-  const now = dayjs().tz('Europe/Paris').format('HH:mm:ss')
-  const today = dayjs().tz('Europe/Paris').format('YYYY-MM-DD')
-  
-  return await powerSync.getAll(
-    `SELECT * FROM events 
-     WHERE start <= ? 
-     AND end >= ? 
-     AND date = ? 
-     AND user_id = ?`,
-    [now, now, today, userId]
-  )
+export const fetchActualEvent = async (userId: string) =>{
+    const now = dayjs().tz('Europe/Paris').format('HH:mm:ss');
+    let {data, error} = await supabase
+    .from('events')
+    .select('*')
+    .lte('start', now)
+    .gte('end', now)
+    .eq('date', dayjs().tz('Europe/Paris').format('YYYY-MM-DD'))
+    .eq('user_id', userId)
+    console.log('now: ', data);
+    console.log(now);
+    return data;
 }
 
-// ================== Mutations ==================
-
-export const insertEvent = async (
-  id: string,
-  title: string,
-  start: string,
-  end: string,
-  duration: string,
-  recurrenceRule: string,
-  value: string,
-  color: string,
-  image: string,
-  textColor: string,
-  notification: string,
-  preNotification: string,
-  userId: string
-) => {
-  const powerSync = getPowerSync()
-  const date = start.split('T')[0]
-  const startTime = start.split('T')[1]
-  const endTime = end.split('T')[1]
-  const createdAt = new Date().toISOString()
-  
-  await powerSync.execute(
-    `INSERT INTO events (
-      id, created_at, title, date, start, end, duration, 
-      recurrence_rule, value, occurences, color, image, 
-      text_color, notification, pre_notification, user_id
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    [
-      id, createdAt, title, date, startTime, endTime, duration,
-      recurrenceRule, value, '1', color, image,
-      textColor, notification, preNotification, userId
-    ]
-  )
-  
-  console.log('✅ Event inséré dans PowerSync')
+export const insertEvent = async (id, title, start, end, duration, recurrenceRule, value, color, image, textColor, notification, preNotification, userId: string) =>{
+    const date = start.split('T')[0];
+    const startTime = start.split('T')[1];
+    const endTime = end.split('T')[1];
+    const { data, error } = await supabase
+    .from('events')
+    .insert([
+      { id: id, title: title, date: date, start: startTime, end: endTime, duration: duration, recurrence_rule: recurrenceRule, value: value, color: color, image: image, text_color: textColor, notification: notification, pre_notification: preNotification, user_id: userId }
+    ])
+    .select()
+    console.log("Inserted event: ", data, error);
 }
 
-export const updateEvent = async (
-  id: string,
-  title: string,
-  start: string,
-  end: string,
-  recurrenceRule: string,
-  value: string,
-  color: string,
-  image: string,
-  textColor: string,
-  notification: string,
-  preNotification: string
-) => {
-  const powerSync = getPowerSync()
-  const date = start.split('T')[0]
-  const startTime = start.split('T')[1]
-  const endTime = end.split('T')[1]
-  
-  await powerSync.execute(
-    `UPDATE events SET 
-      title = ?, date = ?, start = ?, end = ?, 
-      recurrence_rule = ?, value = ?, color = ?, 
-      image = ?, text_color = ?, notification = ?, 
-      pre_notification = ?
-    WHERE id = ?`,
-    [
-      title, date, startTime, endTime, recurrenceRule,
-      value, color, image, textColor, notification,
-      preNotification, id
-    ]
-  )
-  
-  console.log('✅ Event mis à jour dans PowerSync')
+export const updateEvent = async (id, title, start, end, recurrenceRule, value, color, image, textColor, notification, preNotification) =>{
+    console.log("Updating event id:", start);
+    const date = start.split('T')[0] ;
+    const startTime = start.split('T')[1];
+    const endTime = end.split('T')[1] ;
+    const { data, error } = await supabase
+    .from('events')
+    .update({ title: title, date: date, start: startTime, end: endTime, recurrence_rule: recurrenceRule, value: value, color: color, image: image, text_color: textColor, notification: notification, pre_notification: preNotification })
+    .eq('id', id)
+    .select()
 }
 
-export const removeEvent = async (id: string) => {
-  const powerSync = getPowerSync()
-  await powerSync.execute(
-    'DELETE FROM events WHERE id = ?',
-    [id]
-  )
-  
-  console.log('✅ Event supprimé de PowerSync')
+export const removeEvent = async (id) =>{
+    const {error} = await supabase
+    .from('events')
+    .delete()
+    .eq('id', id)
 }

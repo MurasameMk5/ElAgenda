@@ -156,7 +156,7 @@ export default function HomeTasks() {
           )
         }
       </View>
-      <ScrollView contentContainerStyle={{paddingBottom: 250}}>
+      <ScrollView contentContainerStyle={{paddingBottom: 320}}>
         {events && events
           .map((event) => (
           <TasksMiniature

@@ -398,6 +398,7 @@ export default function TabTwoScreen() {
     let fetchedEvent = await fetchEventById(event.id);
     if(fetchedEvent)
       setCopiedEvent(fetchedEvent[0]);
+    console.log(fetchedEvent);
     setCopied(true);
     setModalVisible(false);
   }
@@ -421,7 +422,7 @@ export default function TabTwoScreen() {
     console.log("new end: ",newEnd);
 
     console.log("copied Event: ", copiedEvent);
-    await insertEvent(newId, copiedEvent.title, copiedEvent.start, newEnd, copiedEvent.duration, copiedEvent.recurrenceRule, copiedEvent.value, copiedEvent.color, copiedEvent.image, copiedEvent.textColor, notifId, copiedEvent.preNotification);
+    await insertEvent(newId, copiedEvent.title, copiedEvent.start, newEnd, copiedEvent.duration, copiedEvent.recurrenceRule, copiedEvent.value, copiedEvent.color, copiedEvent.image, copiedEvent.textColor, notifId, copiedEvent.preNotification, user.id);
     setCopied(false);
     setModalVisible(false);
     loadEvents();
@@ -649,6 +650,7 @@ export default function TabTwoScreen() {
                 mode="time"
                 is24Hour={true}
                 display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                timeZoneName={'Europe/Paris'}
                 onChange={(event, selectedDate) => {
                   setShowStartPicker(false);
                   if (selectedDate) {
@@ -656,7 +658,7 @@ export default function TabTwoScreen() {
                     const dateStr = newEvent.start.dateTime.split('T')[0];
                     const hours = String(date.getHours()).padStart(2, '0');
                     const minutes = String(date.getMinutes()).padStart(2, '0');
-                    const newStartTime = `${dateStr}T${hours}:${minutes}:00`;
+                    const newStartTime = `${dateStr}T${hours}:${minutes}:00+02:00`;
                     setNewEvent({ ...newEvent, start: { dateTime: newStartTime } });
                   }
                 }}
@@ -669,6 +671,7 @@ export default function TabTwoScreen() {
                 mode="time"
                 is24Hour={true}
                 display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                timeZoneName={'Europe/Paris'}
                 onChange={(event, selectedDate) => {
                   setShowEndPicker(false);
                   if (selectedDate) {
@@ -676,7 +679,7 @@ export default function TabTwoScreen() {
                     const dateStr = newEvent.end.dateTime.split('T')[0];
                     const hours = String(date.getHours()).padStart(2, '0');
                     const minutes = String(date.getMinutes()).padStart(2, '0');
-                    const newEndTime = `${dateStr}T${hours}:${minutes}:00`;
+                    const newEndTime = `${dateStr}T${hours}:${minutes}:00+02:00`;
                     setNewEvent({ ...newEvent, end: { dateTime: newEndTime } });
                   }
                 }}

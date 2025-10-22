@@ -84,8 +84,10 @@ export default function TabOneScreen() {
       logoutY.value = withTiming(-50, { duration: 300 });
 
       // Trash : diagonale haut droite
-      trashX.value = withTiming(50, { duration: 300 });
-      trashY.value = withTiming(-40, { duration: 300 }); 
+      if(userImage != ''){
+        trashX.value = withTiming(50, { duration: 300 });
+        trashY.value = withTiming(-40, { duration: 300 }); 
+      }
       
       // Brush : vers la droite
       brushX.value = withTiming(70, { duration: 300 });
