@@ -8,6 +8,7 @@ import { Ionicons } from '@expo/vector-icons';
 import * as DocumentPicker from 'expo-document-picker';
 import * as ScreenOrientation from 'expo-screen-orientation';
 import CalendarPicker from 'react-native-calendar-picker';
+import {Calendar, LocaleConfig} from 'react-native-calendars';
 import Modal from 'react-native-modal'
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -19,6 +20,7 @@ import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
 import { useUser } from '@/components/UserContext';
+import Animated, {useSharedValue, useAnimatedStyle, withTiming, withRepeat,withSpring, Easing, ReduceMotion} from 'react-native-reanimated';
 
 export default function TabTwoScreen() {
   dayjs.extend(utc);
@@ -28,6 +30,7 @@ export default function TabTwoScreen() {
   const [showEndPicker, setShowEndPicker] = useState(false);  
   const calendarRef = useRef(null);
   const [agenda, setAgenda] = useState(false);
+  const [markedDates, setMarkedDates] = useState({});
   const [selectedMonth, setSelectedMonth] = useState(()=>{
     const month = new Date().toLocaleString('fr-FR', {month: 'long'});
     return month.charAt(0).toUpperCase() + month.slice(1)
@@ -67,7 +70,18 @@ export default function TabTwoScreen() {
   ]);
   const insets = useSafeAreaInsets();
   let hasAlarm = false;
+  const scale = useSharedValue(1);
+  const [animNewEvent, setAnimNewEvent] = useState(false);
   
+  LocaleConfig.locales['fr'] = {
+    monthNames: ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'],
+    monthNamesShort: ['Janv.', 'Févr.', 'Mars', 'Avril', 'Mai', 'Juin', 'Juil.', 'Août', 'Sept.', 'Oct.', 'Nov.', 'Déc.'],
+    dayNames: ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'],
+    dayNamesShort: ['Dim.', 'Lun.', 'Mar.', 'Mer.', 'Jeu.', 'Ven.', 'Sam.'],
+    today: "Aujourd'hui"
+  }
+  LocaleConfig.defaultLocale = 'fr';
+
   useEffect(() => {
     if(!modalVisible){
       setNewEvent({
@@ -111,6 +125,30 @@ export default function TabTwoScreen() {
     }
   }
 
+  const setDots = () => {
+    const dates = {}; 
+    
+    events.forEach((event) => {
+      const eventDate = event.start.dateTime.split('T')[0]; 
+      
+      if (!dates[eventDate]) {
+        dates[eventDate] = { dots: [] };
+      }
+      if(dates[eventDate].dots.length < 3)
+        dates[eventDate].dots.push({ color: event.color });
+    });
+    console.log(dates);
+    setMarkedDates(dates);
+  };
+
+  const animEvent = (event: any) =>{
+    if(animNewEvent)
+      scale.value = withRepeat(withTiming(1.05, { duration: 800, easing: Easing.inOut(Easing.poly(5)), reduceMotion: ReduceMotion.Never}), -1, true);
+  }
+  useEffect(() => {
+    setDots();
+  }, [events]);
+
   useEffect(() => {
     if (calendarRef.current) {
     calendarRef.current.goToDate({ date: new Date().toISOString() });
@@ -123,7 +161,40 @@ export default function TabTwoScreen() {
     getAlarmSetting();
 
     loadEvents();
-  }, [])
+    }, [])
+
+    useEffect(() => {
+    if (agenda) {
+      calendarHeight.value = withSpring(325, {
+        damping: 15,
+        stiffness: 150,
+      });
+      calendarOpacity.value = withTiming(1, { 
+        duration: 400,
+        easing: Easing.out(Easing.ease)
+      });
+    } else {
+      calendarHeight.value = withTiming(0, { 
+        duration: 250,
+        easing: Easing.in(Easing.ease)
+      });
+      calendarOpacity.value = withTiming(0, { 
+        duration: 200 
+      });
+    }
+  }, [agenda]);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+      transform: [{ scale: scale.value }],
+  }));
+
+  const calendarHeight = useSharedValue(0);
+  const calendarOpacity = useSharedValue(0);
+
+  const animatedCalendarStyle = useAnimatedStyle(() => ({
+    height: calendarHeight.value,
+    opacity: calendarOpacity.value,
+  }));
 /*
   useEffect(() => {
   const clearEvents = async () => {
@@ -186,8 +257,9 @@ export default function TabTwoScreen() {
 
     const trigger: TimestampTrigger = {
       type: TriggerType.TIMESTAMP,
-      timestamp: new Date(start.dateTime).getTime(),
+      timestamp: dayjs(start.dateTime).valueOf(),
       alarmManager: hasAlarm,
+      
     }
 
     
@@ -215,11 +287,16 @@ export default function TabTwoScreen() {
       start: event.start,
       end: event.end,
     });
-    setCopiedEvent({
-      ...copiedEvent,
-      date: event.start.dateTime.split('T')[0],
-      start: event.start.dateTime,
-    });
+    if(copied){
+      setCopiedEvent({
+        ...copiedEvent,
+        date: event.start.dateTime.split('T')[0],
+        start: event.start.dateTime,
+        textColor: copiedEvent.text_color,
+        recurrenceRule: copiedEvent.recurrence_rule,
+        preNotification: copiedEvent.pre_notification
+      });
+    }
     setModalVisible(true)
   }
   //===================Modifier un évènement===================
@@ -230,7 +307,7 @@ export default function TabTwoScreen() {
     await sendNotification(event.title, event.start);
     notifee.cancelNotification(event.notification);
     let ev = {...event, value: value, notification: notifId}
-    updateEvent(ev.id, ev.title, ev.start.dateTime, ev.end.dateTime, ev.recurrenceRule, ev.value, ev.color, ev.image, ev.textColor, ev.notification, ev.preNotification);
+    await updateEvent(ev.id, ev.title, ev.start.dateTime, ev.end.dateTime, ev.recurrenceRule, ev.value, ev.color, ev.image, ev.textColor, ev.notification, ev.preNotification);
     console.log("Event updated:", ev);
 
     if(value != 'none'){
@@ -389,7 +466,6 @@ export default function TabTwoScreen() {
     setValue('none');
     setModalVisible(false);
     loadEvents();
-
   }  
 
     //===================Copier un évènement===================
@@ -398,7 +474,7 @@ export default function TabTwoScreen() {
     let fetchedEvent = await fetchEventById(event.id);
     if(fetchedEvent)
       setCopiedEvent(fetchedEvent[0]);
-    console.log(fetchedEvent);
+    console.log("Copie:", fetchedEvent);
     setCopied(true);
     setModalVisible(false);
   }
@@ -406,9 +482,11 @@ export default function TabTwoScreen() {
     //===================Coller un évènement===================
 
   const pasteEvent = async (event) => {
-    
-    const notifId = `${event.title}-${event.start.dateTime}`; 
-    await sendNotification(copiedEvent.title, copiedEvent.start);
+    console.log("Colle:", copiedEvent)
+    let newStartDateTime = copiedEvent.start;
+    newStartDateTime = newStartDateTime.replace(/\.\d{3}/, '');
+    const notifId = `${copiedEvent.title}-${newStartDateTime}`; 
+    await sendNotification(copiedEvent.title, {dateTime: newStartDateTime});
     let newId = String(Math.max(
         ...events.map(ev => parseInt(ev.id.split(':')[0], 10) || 0)
       ) + 1);
@@ -416,13 +494,12 @@ export default function TabTwoScreen() {
     let newEnd = dayjs(copiedEvent.start)
         .add(Number(copiedEvent.duration.split(':')[0]), 'hour')
         .add(Number(copiedEvent.duration.split(':')[1]), 'minute')
-        .tz('Europe/Paris', true)
-        .format('YYYY-MM-DDTHH:mm:ss+02:00');
+        .format();
 
     console.log("new end: ",newEnd);
 
     console.log("copied Event: ", copiedEvent);
-    await insertEvent(newId, copiedEvent.title, copiedEvent.start, newEnd, copiedEvent.duration, copiedEvent.recurrenceRule, copiedEvent.value, copiedEvent.color, copiedEvent.image, copiedEvent.textColor, notifId, copiedEvent.preNotification, user.id);
+    await insertEvent(newId, copiedEvent.title, newStartDateTime, newEnd, copiedEvent.duration, copiedEvent.recurrenceRule, copiedEvent.value, copiedEvent.color, copiedEvent.image, copiedEvent.textColor, notifId, copiedEvent.preNotification, user.id);
     setCopied(false);
     setModalVisible(false);
     loadEvents();
@@ -451,15 +528,17 @@ export default function TabTwoScreen() {
     //===================Apparence d'un évènement===================
   const renderEvent = useCallback(
     (event) => (
-      <ImageBackground
-        source={{uri: event.image}}
-        style={{
-          height: '100%',
-          backgroundColor: event.color,
-          borderRadius: 10,
-        }}>
-        <Text style={{ color: event.textColor, fontSize: 10 }}>{event.title}</Text>
-      </ImageBackground>
+      <Animated.View style={[{}, animatedStyle]}>
+        <ImageBackground
+          source={{uri: event.image}}
+          style={{
+            height: '100%',
+            backgroundColor: event.color,
+            borderRadius: 10,
+          }}>
+          <Text style={{ color: event.textColor, fontSize: 10 }}>{event.title}</Text>
+        </ImageBackground>
+      </Animated.View>
     ),
     []
   );
@@ -469,30 +548,41 @@ export default function TabTwoScreen() {
       backgroundColor: 'rgba(255, 231, 187, 0.7)',
     },
     todayNumberContainer: {
-      backgroundColor: 'orange',
+      backgroundColor: 'rgba(183, 152, 255, 0.6)',
     },
     nowIndicatorColor: 'orange',
   }
 
-  const customDayHeaderStyle = ({ dayOfWeek, month, year }) => {
-    if(dayOfWeek <6){
-      return {
-        textStyle: {
-          color: 'orange',
-        }
-      };
-    }
-    else{
-      return {
-        textStyle: {
-          color: 'rgba(183, 152, 255, 1)',
-        }
-    }
+  const calendarTheme = {
+    arrowColor: 'orange',
+    todayTextColor: 'white',
+    todayBackgroundColor: 'rgba(183, 152, 255, 0.6)',
+    selectedDayBackgroundColor: 'orange',
+    selectedDayTextColor: 'white',
+    'stylesheet.calendar.header': {
+      dayTextAtIndex0: { color: 'orange'},
+      dayTextAtIndex1: { color: 'orange'},
+      dayTextAtIndex2: { color: 'orange'},
+      dayTextAtIndex3: { color: 'orange'},
+      dayTextAtIndex4: { color: 'orange'},
+      dayTextAtIndex5: { color: 'rgba(183, 152, 255, 1)'},
+      dayTextAtIndex6: { color: 'rgba(183, 152, 255, 1)'},
+      week:{
+        marginHorizontal: 12,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        borderBottomWidth: 1,
+        borderBottomColor: 'rgba(183, 152, 255, 0.5)',
+        paddingBottom: 10,
+        borderTopWidth: 1,
+        borderTopColor: 'rgba(183, 152, 255, 0.5)',
+        paddingTop: 10,
+      }
+    },
   }
-};
   return (
     <GestureHandlerRootView>
-      <View style={{flex: 1, top: insets.top}}>
+      <View style={{flex: 1, top: insets.top, backgroundColor: 'rgba(255, 231, 187, 0.7)'}}>
         <View style={{height: 50}}>
           <TouchableOpacity onPress={() => setAgenda(a => !a)} style={{top: 8, right: 15, position: 'absolute', zIndex: 10}}>
             <Ionicons name="calendar" size={30} color={'rgba(183, 152, 255, 1)'}/> 
@@ -525,31 +615,36 @@ export default function TabTwoScreen() {
           {
             //--------------Calendrier supérieur--------------
           }
-          {agenda && (
-          <View>
-            <CalendarPicker
-              startFromMonday={true}
-              weekdays={["L", "M", "M", "J", "V", "S", "D"]}
-              months={["Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Aout", "Septembre", "Octobre", "Novembre", "Décembre"]} 
-              previousTitle={"◀" }
-              nextTitle="▶"  
-              onDateChange={(date)=> {
-                calendarRef.current?.goToDate({date: date});
-                const month = date.toLocaleString('fr-FR', {month: 'long'});
+          <Animated.View style={animatedCalendarStyle}>
+            <Calendar
+              onDayPress={(date)=> {
+                calendarRef.current?.goToDate({date: new Date(date.timestamp).toISOString()});
+                const month = LocaleConfig.locales['fr'].monthNames[date.month -1];
                 setSelectedMonth(month.charAt(0).toUpperCase() + month.slice(1)) 
               }}
-              height={350}
-              todayBackgroundColor={'orange'}
-              todayTextStyle={{color: 'white', fontWeight: 'bold'}}
-              selectedDayColor='rgba(183, 152, 255, 0.57)'
-              monthTitleStyle={{color: 'orange'}}
-              yearTitleStyle={{color: 'rgba(183, 152, 255, 1)'}}
-              customDayHeaderStyles={customDayHeaderStyle}
+              firstDay={1}
+              enableSwipeMonths={true}
+              markingType={'multi-dot'}
+              markedDates={markedDates}
+              renderHeader={(date) => 
+                <View style={{flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 10}}>
+                  <Text style={{fontSize: 16, color: 'orange'}}>
+                    {LocaleConfig.locales['fr'].monthNames[date.getMonth()]} 
+                  </Text>
+                  <Text style={{fontSize: 16, color: 'rgba(183, 152, 255, 1)'}}>
+                    {date.getFullYear()}
+                  </Text>
+                </View>
+              }
+              style={{
+
+              }}
+              theme={calendarTheme}
             />
-          </View>
-          )}
-            <CalendarHeader/>
-            <CalendarBody renderEvent={renderEvent}/>
+          </Animated.View>
+
+          <CalendarHeader/>
+          <CalendarBody renderEvent={renderEvent}/>
         </CalendarContainer>
       </View>
 
@@ -654,11 +749,13 @@ export default function TabTwoScreen() {
                 onChange={(event, selectedDate) => {
                   setShowStartPicker(false);
                   if (selectedDate) {
+                    console.log(selectedDate);
                     const date = new Date(selectedDate);
                     const dateStr = newEvent.start.dateTime.split('T')[0];
                     const hours = String(date.getHours()).padStart(2, '0');
                     const minutes = String(date.getMinutes()).padStart(2, '0');
-                    const newStartTime = `${dateStr}T${hours}:${minutes}:00+02:00`;
+                    const newStartTime = dayjs(`${dateStr}T${hours}:${minutes}:00`)
+                    .format('YYYY-MM-DDTHH:mm:ssZ');
                     setNewEvent({ ...newEvent, start: { dateTime: newStartTime } });
                   }
                 }}
@@ -679,13 +776,13 @@ export default function TabTwoScreen() {
                     const dateStr = newEvent.end.dateTime.split('T')[0];
                     const hours = String(date.getHours()).padStart(2, '0');
                     const minutes = String(date.getMinutes()).padStart(2, '0');
-                    const newEndTime = `${dateStr}T${hours}:${minutes}:00+02:00`;
+                    const newEndTime = dayjs(`${dateStr}T${hours}:${minutes}:00`)
+                    .format('YYYY-MM-DDTHH:mm:ssZ');
                     setNewEvent({ ...newEvent, end: { dateTime: newEndTime } });
                   }
                 }}
               />
             )}
-              }
 
               {
                 //----------Button séléction des couleurs----------------

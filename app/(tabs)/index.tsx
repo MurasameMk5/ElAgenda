@@ -13,7 +13,7 @@ import Modal from 'react-native-modal';
 import LoginPage from '@/components/LoginPage';
 import { useUser } from '@/components/UserContext';
 import { signOutUser, updateUserProfile } from '@/src/services/userService';
-import Animated, {useSharedValue, useAnimatedStyle, withTiming, withRepeat, Easing, ReduceMotion} from 'react-native-reanimated';
+import Animated, {useSharedValue, useAnimatedStyle, withTiming, withSequence, withDelay, withRepeat, Easing, ReduceMotion} from 'react-native-reanimated';
 
 export default function TabOneScreen() {
   const {user, setUser} = useUser();
@@ -80,18 +80,18 @@ export default function TabOneScreen() {
 
   useEffect(() => {
     if (logoutPopupVisible) {
-      logoutX.value = withTiming(-10, { duration: 300 });
-      logoutY.value = withTiming(-50, { duration: 300 });
+      logoutX.value = withTiming(10, { duration: 100 });
+      logoutY.value = withTiming(-50, { duration: 100 });
 
       // Trash : diagonale haut droite
       if(userImage != ''){
-        trashX.value = withTiming(50, { duration: 300 });
-        trashY.value = withTiming(-40, { duration: 300 }); 
+        trashX.value = withTiming(-50, { duration: 100 });
+        trashY.value = withTiming(-40, { duration: 100 }); 
       }
       
       // Brush : vers la droite
-      brushX.value = withTiming(70, { duration: 300 });
-      brushY.value = withTiming(20, { duration: 300 });
+      brushX.value = withTiming(-70, { duration: 100 });
+      brushY.value = withTiming(20, { duration: 100 });
       
       hidePopupTimeout.current = setTimeout(()=>{
         setLogoutPopupVisible(false);
@@ -101,14 +101,15 @@ export default function TabOneScreen() {
         clearTimeout(hidePopupTimeout.current);
       }
 
-      logoutX.value = withTiming(0, { duration: 300 });
-      logoutY.value = withTiming(0, { duration: 300 });
+      logoutX.value = withDelay(620, withTiming(0));
+      logoutY.value = withDelay(620, withTiming(0));
+      
+      trashX.value = withDelay(300, withSequence(withTiming(10, {duration: 250}), withTiming(0)));
+      trashY.value = withDelay(300, withSequence(withTiming(-50, {duration: 250}), withTiming(0)));
 
-      brushX.value = withTiming(0, { duration: 300 });
-      brushY.value = withTiming(0, { duration: 300 });
+      brushX.value = withSequence(withTiming(-50, {duration: 250}), withTiming(10, {duration: 250}), withTiming(0));
+      brushY.value = withSequence(withTiming(-40, {duration: 250}), withTiming(-50, {duration: 250}), withTiming(0));
 
-      trashX.value = withTiming(0, { duration: 300 });
-      trashY.value = withTiming(0, { duration: 300 });
     }
     return () => {
     if (hidePopupTimeout.current) {
@@ -237,7 +238,7 @@ return (
         style={styles.image}
       />
     </Pressable>
-    <Pressable onPress={loginButton} style={{ position: 'absolute', bottom: 20, left: 20, zIndex: 20, backgroundColor: 'white', borderRadius: 50 }}>
+    <Pressable onPress={loginButton} style={{ position: 'absolute', bottom: 20, right: 20, zIndex: 20, backgroundColor: 'white', borderRadius: 50 }}>
         {user.id? (
           userImage && userImage !== '' ? (
             <Image
@@ -259,23 +260,24 @@ return (
     {
       //------------------logout Popup Buttons-------------------
     }
-      <Animated.View style={[{...styles.logoutPopup, bottom: 40, left: 25, zIndex: 10, backgroundColor: 'rgba(255, 154, 171, 0.81)' }, logoutStyle]}>
+      <Animated.View style={[{...styles.logoutPopup, bottom: 40, right: 25, zIndex: 10, backgroundColor: 'rgba(255, 154, 171, 0.81)' }, logoutStyle]}>
         <TouchableOpacity onPress={logout}>
           <Ionicons name='log-out-outline' size={25} color={'white'} />
         </TouchableOpacity>
       </Animated.View>
     
-      <Animated.View style={[{...styles.logoutPopup, bottom: 40, left: 25, zIndex: 10, backgroundColor: 'rgba(159, 255, 154, 0.81)'}, brushStyle]}>
+    <Animated.View style={[{...styles.logoutPopup, bottom: 40, right: 25, zIndex: 10, backgroundColor: 'rgba(238, 237, 231, 0.9)'}, trashStyle]}>
+        <TouchableOpacity onPress={deleteUserImage}>
+          <Ionicons name='trash' size={25} color={'rgba(183, 152, 255, 1'} />
+        </TouchableOpacity>
+      </Animated.View>
+
+      <Animated.View style={[{...styles.logoutPopup, bottom: 40, right: 25, zIndex: 10, backgroundColor: 'rgba(159, 255, 154, 0.81)'}, brushStyle]}>
         <TouchableOpacity onPress={changeUserImage}>
           <Ionicons name='brush-outline' size={25} color={'rgba(183, 152, 255, 1'} />
         </TouchableOpacity>
       </Animated.View>
       
-      <Animated.View style={[{...styles.logoutPopup, bottom: 40, left: 25, zIndex: 10, backgroundColor: 'rgba(238, 237, 231, 0.9)'}, trashStyle]}>
-        <TouchableOpacity onPress={deleteUserImage}>
-          <Ionicons name='trash' size={25} color={'rgba(183, 152, 255, 1'} />
-        </TouchableOpacity>
-      </Animated.View>
     <HomeTasks />
     <CharDialogue />
   </SafeAreaView>
