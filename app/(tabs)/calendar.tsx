@@ -8,7 +8,7 @@ import { Ionicons } from '@expo/vector-icons';
 import * as DocumentPicker from 'expo-document-picker';
 import * as ScreenOrientation from 'expo-screen-orientation';
 import CalendarPicker from 'react-native-calendar-picker';
-import {Calendar, LocaleConfig} from 'react-native-calendars';
+import {Calendar, CalendarList, LocaleConfig} from 'react-native-calendars';
 import Modal from 'react-native-modal'
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -29,6 +29,7 @@ export default function TabTwoScreen() {
   const [showStartPicker, setShowStartPicker] = useState(false);
   const [showEndPicker, setShowEndPicker] = useState(false);  
   const calendarRef = useRef(null);
+  const calendarListRef = useRef(null);
   const [agenda, setAgenda] = useState(false);
   const [markedDates, setMarkedDates] = useState({});
   const [selectedMonth, setSelectedMonth] = useState(()=>{
@@ -165,9 +166,10 @@ export default function TabTwoScreen() {
 
     useEffect(() => {
     if (agenda) {
+      calendarListRef.current?.scrollToDay(new Date,0, true);
       calendarHeight.value = withSpring(325, {
-        damping: 15,
-        stiffness: 150,
+      damping: 15,
+      stiffness: 150,
       });
       calendarOpacity.value = withTiming(1, { 
         duration: 400,
@@ -584,8 +586,23 @@ export default function TabTwoScreen() {
     <GestureHandlerRootView>
       <View style={{flex: 1, top: insets.top, backgroundColor: 'rgba(255, 231, 187, 0.7)'}}>
         <View style={{height: 50}}>
+          <TouchableOpacity onPress={() => {
+            let date = new Date();
+            calendarRef.current?.goToDate({date: date.toISOString()});
+            const month = LocaleConfig.locales['fr'].monthNames[date.getMonth()];
+            setSelectedMonth(month.charAt(0).toUpperCase() + month.slice(1));
+            calendarListRef.current?.scrollToDay(date,0, true);
+          }} 
+            style={{top: 8, right: 60, position: 'absolute', zIndex: 10}}>
+              <Ionicons name="infinite" size={30} color={'rgba(183, 152, 255, 1)'}/> 
+          </TouchableOpacity>
           <TouchableOpacity onPress={() => setAgenda(a => !a)} style={{top: 8, right: 15, position: 'absolute', zIndex: 10}}>
-            <Ionicons name="calendar" size={30} color={'rgba(183, 152, 255, 1)'}/> 
+            {agenda &&
+              <Ionicons name="calendar" size={30} color={'rgba(183, 152, 255, 1)'}/> 
+            }
+            {!agenda &&
+              <Ionicons name="calendar-outline" size={30} color={'rgba(183, 152, 255, 1)'}/>
+            }
           </TouchableOpacity>
           <Text style={{color: 'orange', fontSize:20, position: 'absolute', left: 60, top: 10, padding: 2, paddingHorizontal: 8, borderBottomColor: 'rgba(183, 152, 255, 1)', borderBottomWidth: 2, borderRadius: 10}}>
             {selectedMonth}
@@ -616,16 +633,18 @@ export default function TabTwoScreen() {
             //--------------Calendrier supérieur--------------
           }
           <Animated.View style={animatedCalendarStyle}>
-            <Calendar
+            <CalendarList
+              ref={calendarListRef}
               onDayPress={(date)=> {
                 calendarRef.current?.goToDate({date: new Date(date.timestamp).toISOString()});
                 const month = LocaleConfig.locales['fr'].monthNames[date.month -1];
                 setSelectedMonth(month.charAt(0).toUpperCase() + month.slice(1)) 
               }}
               firstDay={1}
-              enableSwipeMonths={true}
               markingType={'multi-dot'}
               markedDates={markedDates}
+              horizontal={true}
+              pagingEnabled={true}
               renderHeader={(date) => 
                 <View style={{flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 10}}>
                   <Text style={{fontSize: 16, color: 'orange'}}>

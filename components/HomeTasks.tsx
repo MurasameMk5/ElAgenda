@@ -1,29 +1,33 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { use, useEffect, useRef, useState } from 'react';
 import { StyleSheet, ScrollView, Text, View } from 'react-native';
-import { Image } from 'expo-image';
+import {Image} from 'expo-image';
 import TasksMiniature from './TasksMiniature';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useEvents } from '@/app/eventsContext';
 import { Ionicons } from '@expo/vector-icons';
-import Animated, { useSharedValue, useAnimatedStyle, withTiming, withRepeat, Easing, ReduceMotion } from 'react-native-reanimated';
-import { fetchActualEvent, fetchTodayEvents } from '@/src/services/eventService';
+import Animated, {useSharedValue, useAnimatedStyle, withTiming, withRepeat, Easing, ReduceMotion} from 'react-native-reanimated';
+import {fetchActualEvent, fetchTodayEvents } from '@/src/services/eventService';
 import { useIsFocused } from '@react-navigation/native';
 import { useUser } from './UserContext';
 
+
 export default function HomeTasks() {
-  const { user } = useUser();
-  const [enCours, setEnCours] = useState(false);
-  const [events, setEvents] = useState([]);
-  const [actualEvent, setActualEvent] = useState(null);
-  const isFocused = useIsFocused();
-  const translateX = useSharedValue(0);
-
-  // Animation du personnage (Varuo)
-  const varuoState = ['Still', 'Idle1', 'Idle2', 'Idle3'];
+  //const {events} = useEvents();
+  const {user, setUser} = useUser();
+  const [enCours, setEnCours] = useState(false)
+  const varuoState = ["Still", "Idle1", "Idle2", "Idle3"]
   const [varuo, setVaruo] = useState(varuoState[0]);
+  const [actualEvent, setActualEvent] = useState(null);
+ 
+  const translateX = useSharedValue(0);
+  const [events, setEvents] = useState([]);
+  const isFocused = useIsFocused();
   const stillTimeoutRef = useRef(null);
-
-  const handleEnCours = (isEnCours) => {
+  
+  const handleEnCours = (isEnCours: boolean) => {
     setEnCours(isEnCours);
   };
+
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: translateX.value }],
@@ -56,97 +60,124 @@ export default function HomeTasks() {
       };
 
       getTodayEvents();
-      getActualEvent();
-
+      getActualEvent();   
     }
   }, [isFocused, user.id]);
 
   useEffect(() => {
-    if (enCours) {
-      translateX.value = withRepeat(
-        withTiming(200, {
-          duration: 2500,
-          easing: Easing.inOut(Easing.poly(5)),
-          reduceMotion: ReduceMotion.Never,
-        }),
-        -1,
-        true
-      );
-    } else {
+    if(enCours) 
+      translateX.value = withRepeat(withTiming(200, { duration: 2500, easing: Easing.inOut(Easing.poly(5)), reduceMotion: ReduceMotion.Never }), -1, true);
+    else
       translateX.value = 0;
-    }
   }, [enCours]);
 
   useEffect(() => {
+    // Early exit if enCours is true
     if (enCours) {
-      if (stillTimeoutRef.current) clearTimeout(stillTimeoutRef.current);
+      if (stillTimeoutRef.current) {
+        clearTimeout(stillTimeoutRef.current);
+        stillTimeoutRef.current = null;
+      }
       return;
     }
 
-    if (stillTimeoutRef.current) clearTimeout(stillTimeoutRef.current);
+    // Clear any existing timeout
+    if (stillTimeoutRef.current) {
+      clearTimeout(stillTimeoutRef.current);
+      stillTimeoutRef.current = null;
+    }
 
+    // Duration mapping for cleaner code
     const durations = {
-      Idle1: 8370,
-      Idle2: 4200,
-      Idle3: 8370,
-      Still: 4000,
+      'Idle1': 8370,
+      'Idle2': 4200,
+      'Idle3': 8370,
+      'Still': 4000
     };
 
     if (durations[varuo]) {
       stillTimeoutRef.current = setTimeout(() => {
-        setVaruo((prev) =>
-          prev === 'Still'
-            ? varuoState[Math.floor(Math.random() * varuoState.length)]
-            : 'Still'
-        );
+        if (varuo === 'Still') {
+          setVaruo(varuoState[Math.floor(Math.random() * varuoState.length)]);
+        } else {
+          setVaruo('Still');
+        }
       }, durations[varuo]);
     }
 
+    // Cleanup function
     return () => {
-      if (stillTimeoutRef.current) clearTimeout(stillTimeoutRef.current);
+      if (stillTimeoutRef.current) {
+        clearTimeout(stillTimeoutRef.current);
+        stillTimeoutRef.current = null;
+      }
     };
-  }, [varuo, enCours]);
+  }, [varuo, enCours, varuoState]);
+
 
   return (
     <View style={styles.container}>
-      <View style={{ flex: 1, borderWidth: 1, borderColor: 'orange', margin: 5, borderRadius: 20 }}>
-        <View>
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', margin: 10 }}>
-            <Text style={styles.homeScreenFilename}>Today's tasks</Text>
-            <Ionicons name="time-outline" size={30} />
-            <Text style={styles.homeScreenFilename}>
-              {new Date().toLocaleDateString('fr-FR', {
-                weekday: 'long',
-                month: 'long',
-                day: 'numeric',
-              })}
-            </Text>
-          </View>
-
-          {enCours ? (
-            <Animated.View style={[{ width: 134, height: 98, marginLeft: '10%' }, animatedStyle]}>
-              <Image source={require('@/assets/images/Varuo-run.gif')} style={styles.image} />
-            </Animated.View>
-          ) : (
-            <View style={{ alignItems: 'center' }}>
-              <View style={{ width: 134, height: 98 }}>
-                <Image
-                  source={
-                    varuo === 'Still'
-                      ? require('@/assets/images/Varuo-still.gif')
-                      : varuo === 'Idle1'
-                      ? require('@/assets/images/Varuo-idle1.gif')
-                      : varuo === 'Idle2'
-                      ? require('@/assets/images/Varuo-idle2.gif')
-                      : require('@/assets/images/Varuo-idle3.gif')
-                  }
-                  style={styles.image}
-                />
-              </View>
-            </View>
-          )}
+      <View style={{flex: 1, borderWidth: 1, borderColor: 'orange', margin: 5, borderRadius: 20}} >
+      <View>
+        <View style={{flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', margin: 10}}>
+          <Text style={styles.homeScreenFilename}>
+            Today's tasks
+          </Text>
+          <Ionicons name='time-outline' size={30}/>
+          <Text style={styles.homeScreenFilename}>
+            {new Date().toLocaleDateString('fr-FR', {
+              weekday: 'short',
+              month: 'short',
+              day: 'numeric',
+            })}
+          </Text>
         </View>
-
+        {
+          enCours ? (
+          <Animated.View style={[{width:134, height: 98, marginLeft: '10%'}, animatedStyle]}>
+              <Image
+                source={require('@/assets/images/Varuo-run.gif')}
+                style={styles.image}
+            />
+          </Animated.View>
+          
+          ) : (
+            <View style={{alignItems: 'center'}}>
+            {
+            varuo === "Still" ? (
+              <View style={{width:134, height: 98}}>
+                <Image
+                  source={require('@/assets/images/Varuo-still.gif')}
+                  style={styles.image}
+                  />
+              </View>
+            ) : varuo === "Idle1" ? (
+              <View style={{width:134, height: 98}}>
+              <Image
+                source={require('@/assets/images/Varuo-idle1.gif')}
+                style={styles.image}
+                />
+                </View>
+            ) : varuo === "Idle2" ? (
+              <View style={{width:134, height: 98}}>
+              <Image
+                source={require('@/assets/images/Varuo-idle2.gif')}
+                style={styles.image}
+                />
+                </View>
+            ) : varuo === "Idle3" ? (
+              <View style={{width:134, height: 98}}>
+              <Image
+                source={require('@/assets/images/Varuo-idle3.gif')}
+                style={styles.image}
+                />
+                </View>
+            ) : null
+            }
+          </View>
+          )
+        }
+      </View>
         {actualEvent && (
           <View>
             <Text style={{ marginLeft: 10, fontWeight: 'bold' }}>En cours</Text>
@@ -160,28 +191,27 @@ export default function HomeTasks() {
               image={actualEvent.image}
               textColor={actualEvent.text_color}
               onEnCours={handleEnCours}
-              isCurrent={true}
             />
           </View>
         )}
 
         <Text style={{ marginLeft: 10, fontWeight: 'bold' }}>À venir</Text>
-        <ScrollView contentContainerStyle={{ paddingBottom: 320 }}>
-          {events.map((event) => (
-            <TasksMiniature
-              key={event.id}
-              id={event.id}
-              start={event.start.slice(0, 5)}
-              end={event.end.slice(0, 5)}
-              title={event.title}
-              color={event.color}
-              image={event.image}
-              textColor={event.text_color}
-              onEnCours={handleEnCours}
-              isCurrent={false}
-            />
-          ))}
-        </ScrollView>
+      <ScrollView contentContainerStyle={{paddingBottom: 320}}>
+        {events && events
+          .map((event) => (
+          <TasksMiniature
+            key={event.id}
+            id= {event.id}
+            start={event.start.slice(0,5)}
+            end={event.end.slice(0,5)}
+            title={event.title}
+            color={event.color}
+            image={event.image}
+            textColor={event.textColor}
+            onEnCours={handleEnCours}
+          />
+        ))}
+      </ScrollView>
       </View>
     </View>
   );
@@ -197,7 +227,7 @@ const styles = StyleSheet.create({
     top: '36%',
     flex: 1,
     shadowColor: 'black',
-    shadowOffset: { width: 0, height: -2 },
+    shadowOffset: {width: 0, height: -2},
     shadowOpacity: 0.3,
     shadowRadius: 5,
   },
@@ -206,11 +236,31 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
   },
-  image: {
-    width: 244,
-    height: 248,
-    alignSelf: 'center',
-    top: -110,
-    transform: [{ scale: 0.7 }],
+  codeHighlightContainer: {
+    borderRadius: 3,
+    paddingHorizontal: 4,
   },
+  getStartedText: {
+    fontSize: 17,
+    lineHeight: 24,
+    textAlign: 'center',
+  },
+  helpContainer: {
+    marginTop: 15,
+    marginHorizontal: 20,
+    alignItems: 'center',
+  },
+  helpLink: {
+    paddingVertical: 15,
+  },
+  helpLinkText: {
+    textAlign: 'center',
+  },
+  image: {
+    width: 244, 
+    height: 248, 
+    alignSelf: 'center', 
+    top: -110, 
+    transform: [{ scale: 0.7}],
+  }
 });
